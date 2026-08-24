@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anunțuri Noi Apartamente Sector 6</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      max-width: 680px;
+      margin: 20px auto;
+      background: #1e293b;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 1px solid #334155;
+    }
+    .header {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+      padding: 36px 24px;
+      text-align: center;
+      color: #ffffff;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.92;
+    }
+    .stats-bar {
+      background: #0f172a;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+    .badge-count {
+      background: #10b981;
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 13px;
+      display: inline-block;
+    }
+    .content {
+      padding: 24px;
+    }
+    .card {
+      background: #273549;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 1px solid #3b4d66;
+      transition: transform 0.2s;
+    }
+    .card-img-container {
+      width: 100%;
+      height: 220px;
+      background-color: #1e293b;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .card-body {
+      padding: 18px;
+    }
+    .portal-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .portal-olx { background-color: #002f34; border: 1px solid #00a49f; color: #23e5db; }
+    .portal-storia { background-color: #ff5000; }
+    .portal-imobiliare { background-color: #e11d48; }
+    .portal-publi24 { background-color: #2563eb; }
+    .portal-anuntul { background-color: #f59e0b; color: #000; font-weight: 900; }
+    
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 10px 0;
+      line-height: 1.35;
+      text-decoration: none;
+      display: block;
+    }
+    .card-title:hover {
+      color: #38bdf8;
+    }
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .price {
+      font-size: 20px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .pill {
+      background: #1e293b;
+      color: #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      border: 1px solid #334155;
+    }
+    .btn-view {
+      display: block;
+      text-align: center;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .links-summary {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 24px;
+      border: 1px solid #334155;
+    }
+    .links-summary h3 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+      margin: 0 0 12px 0;
+    }
+    .link-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #1e293b;
+      font-size: 13px;
+    }
+    .link-item:last-child {
+      border-bottom: none;
+    }
+    .link-item a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+    .footer {
+      background: #0f172a;
+      padding: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      border-top: 1px solid #334155;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>🏢 Apartamente Noi Sector 6 București</h1>
+      <p>Raport zilnic ora 08:00 • 2 Camere • Construcție &gt; 1977</p>
+    </div>
+
+    <div class="stats-bar">
+      <div style="font-size: 13px; color: #94a3b8;">
+        📅 {{ scan_date }}
+      </div>
+      <div>
+        <span class="badge-count">{{ listings|length }} anunțuri noi</span>
+      </div>
+    </div>
+
+    <div class="content">
+      {% if listings %}
+        {% for item in listings %}
+        <div class="card">
+          {% if item.thumbnail %}
+          <div class="card-img-container">
+            <a href="{{ item.url }}" target="_blank">
+              <img src="{{ item.thumbnail }}" alt="{{ item.title }}" class="card-img">
+            </a>
+          </div>
+          {% endif %}
+          <div class="card-body">
+            <span class="portal-tag portal-{{ item.portal }}">{{ item.portal }}</span>
+            <a href="{{ item.url }}" target="_blank" class="card-title">{{ item.title }}</a>
+            
+            <div class="price-row">
+              <div class="price">
+                {% if item.price %}
+                  {{ "{:,.0f}".format(item.price).replace(",", ".") }} {{ item.currency }}
+                {% else %}
+                  Preț la cerere
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="pills">
+              <span class="pill">📍 {{ item.neighborhood or "Sector 6" }}</span>
+              <span class="pill">🚪 2 Camere</span>
+              {% if item.year %}
+                <span class="pill">🏗️ An {{ item.year }}</span>
+              {% else %}
+                <span class="pill">🏗️ Bloc Nou / După 1977</span>
+              {% endif %}
+              {% if item.surface_sqm %}
+                <span class="pill">📐 {{ item.surface_sqm }} mp</span>
+              {% endif %}
+              {% if item.floor %}
+                <span class="pill">🏢 Etaj {{ item.floor }}</span>
+              {% endif %}
+            </div>
+
+            <a href="{{ item.url }}" target="_blank" class="btn-view">
+              Deschide anunțul pe {{ item.portal|upper }} &rarr;
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="links-summary">
+          <h3>🔗 Lista rapidă a tuturor link-urilor:</h3>
+          {% for item in listings %}
+          <div class="link-item">
+            <strong>[{{ item.portal|upper }}]</strong>
+            <a href="{{ item.url }}" target="_blank">
+              {{ item.title }} 
+              {% if item.price %}({{ "{:,.0f}".format(item.price).replace(",", ".") }} {{ item.currency }}){% endif %}
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+
+      {% else %}
+        <div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
+          <p style="font-size: 18px; margin: 0 0 8px 0;">Nu au fost găsite anunțuri noi în această dimineață.</p>
+          <p style="font-size: 14px; margin: 0;">Următoarea scanare automată va avea loc mâine la ora 08:00.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="footer">
+      <p style="margin: 0 0 6px 0;">Monitorizare automată: OLX.ro, Storia.ro, Imobiliare.ro, Publi24.ro, Anunțul Telefonic.</p>
+      <p style="margin: 0;">Platformă configurată pentru Sector 6 București (2 camere, an de construcție &gt; 1977).</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: imobiliare-sector6-alerte
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 -m uvicorn web.server:app --host 0.0.0.0 --port $PORT
+    plan: free
+    disk:
+      name: listings-data
+      mountPath: /app/data
+      sizeGB: 1

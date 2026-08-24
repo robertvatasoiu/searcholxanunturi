@@ -1,0 +1,41 @@
+name: Scanare Imobiliare Sector 6 (Zilnic Ora 08:00)
+
+on:
+  schedule:
+    # 05:00 UTC = 08:00 AM ora României (UTC+3)
+    - cron: '0 5 * * *'
+  workflow_dispatch: # Permite rulare manuală oricând din interfața GitHub
+
+jobs:
+  scrape-and-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout cod sursă
+        uses: actions/checkout@v4
+
+      - name: Configurare Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Instalare dependențe
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Rulare Căutare & Trimitere Notificări
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python3 -m backend.cloud_runner
+
+      - name: Salvare baza de date actualizată (evită trimiterea duplicatelor)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-update: listings database after daily scan [skip ci]"
+          file_pattern: "data/listings.db"
+        continue-on-error: true

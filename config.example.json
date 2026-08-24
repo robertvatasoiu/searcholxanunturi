@@ -1,0 +1,44 @@
+{
+  "smtp": {
+    "enabled": false,
+    "provider": "resend",
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "use_tls": true,
+    "use_ssl": false,
+    "username": "",
+    "password": "",
+    "sender_email": "onboarding@resend.dev",
+    "sender_name": "Imobiliare Sector 6 Alerte",
+    "recipient_emails": [
+      "destinatar@exemplu.ro"
+    ],
+    "resend_api_key": "",
+    "brevo_api_key": ""
+  },
+  "telegram": {
+    "enabled": false,
+    "bot_token": "",
+    "chat_id": ""
+  },
+  "search": {
+    "rooms": 2,
+    "min_year": 1978,
+    "sector": "Sector 6",
+    "city": "Bucuresti",
+    "max_price": null,
+    "enabled_portals": [
+      "olx",
+      "storia",
+      "imobiliare",
+      "publi24",
+      "anuntul"
+    ]
+  },
+  "schedule": {
+    "enabled": true,
+    "hour": 8,
+    "minute": 0,
+    "timezone": "Europe/Bucharest"
+  }
+}
