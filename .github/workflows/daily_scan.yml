@@ -6,6 +6,11 @@ on:
     - cron: '0 5 * * *'
   workflow_dispatch: # Permite rulare manuală oricând din interfața GitHub
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   scrape-and-notify:
     runs-on: ubuntu-latest
@@ -24,7 +29,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Rulare Căutare & Trimitere Notificări
+      - name: Rulare Căutare, Trimitere Notificări & Generare Platformă Live
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
@@ -33,9 +38,22 @@ jobs:
         run: |
           python3 -m backend.cloud_runner
 
-      - name: Salvare baza de date actualizată (evită trimiterea duplicatelor)
+      - name: Salvare baza de date și platforma web statică
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto-update: listings database after daily scan [skip ci]"
-          file_pattern: "data/listings.db"
+          commit_message: "Auto-update: listings database and live web platform [skip ci]"
+          file_pattern: "data/listings.db docs/index.html"
+        continue-on-error: true
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
         continue-on-error: true

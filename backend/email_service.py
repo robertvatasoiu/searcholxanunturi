@@ -22,9 +22,13 @@ class NotificationService:
         if not scan_date:
             scan_date = datetime.now().strftime("%d.%m.%Y, %H:%M")
         template = self.jinja_env.get_template("email_template.html")
+        platform_url = "https://robertvatasoiu.github.io/searcholxanunturi/"
         return template.render(
             listings=listings,
+            featured_listings=listings[:12],
+            total_count=len(listings),
             scan_date=scan_date,
+            platform_url=platform_url,
             year_filter=config.search.min_year,
             sector=config.search.sector,
             rooms=config.search.rooms
@@ -33,19 +37,26 @@ class NotificationService:
     def render_email_plaintext(self, listings: List[Listing], scan_date: Optional[str] = None) -> str:
         if not scan_date:
             scan_date = datetime.now().strftime("%d.%m.%Y, %H:%M")
+        platform_url = "https://robertvatasoiu.github.io/searcholxanunturi/"
         lines = [
             f"--- APARTAMENTE NOI SECTOR 6 (2 CAMERE, >1977) ---",
             f"Data scanării: {scan_date}",
-            f"Număr anunțuri noi: {len(listings)}",
+            f"Total anunțuri găsite: {len(listings)}",
+            f"Platformă Live Online: {platform_url}",
+            "",
+            "Top cele mai recente anunțuri:",
             ""
         ]
-        for idx, item in enumerate(listings, 1):
+        for idx, item in enumerate(listings[:12], 1):
             price_str = f"{int(item.price)} {item.currency}" if item.price else "Preț nespecificat"
             year_str = f"An: {item.year}" if item.year else "Bloc după 1977"
             lines.append(f"{idx}. [{item.portal.upper()}] {item.title}")
             lines.append(f"   Preț: {price_str} | Cartier: {item.neighborhood or 'Sector 6'} | {year_str}")
             lines.append(f"   Link: {item.url}")
             lines.append("")
+        if len(listings) > 12:
+            lines.append(f"...și încă {len(listings) - 12} anunțuri pe platforma online:")
+            lines.append(f"{platform_url}")
         return "\n".join(lines)
 
     def send_digest(self, listings: List[Listing], recipients: Optional[List[str]] = None) -> Tuple[bool, str]:

@@ -56,6 +56,26 @@
       font-size: 13px;
       display: inline-block;
     }
+    .hero-cta {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .btn-hero {
+      display: inline-block;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+      margin-top: 10px;
+    }
     .content {
       padding: 24px;
     }
@@ -65,11 +85,10 @@
       margin-bottom: 20px;
       overflow: hidden;
       border: 1px solid #3b4d66;
-      transition: transform 0.2s;
     }
     .card-img-container {
       width: 100%;
-      height: 220px;
+      height: 200px;
       background-color: #1e293b;
       position: relative;
       overflow: hidden;
@@ -100,16 +119,13 @@
     .portal-anuntul { background-color: #f59e0b; color: #000; font-weight: 900; }
     
     .card-title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       color: #ffffff;
       margin: 0 0 10px 0;
       line-height: 1.35;
       text-decoration: none;
       display: block;
-    }
-    .card-title:hover {
-      color: #38bdf8;
     }
     .price-row {
       display: flex;
@@ -118,7 +134,7 @@
       margin-bottom: 12px;
     }
     .price {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 800;
       color: #38bdf8;
     }
@@ -126,7 +142,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .pill {
       background: #1e293b;
@@ -139,39 +155,13 @@
     .btn-view {
       display: block;
       text-align: center;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      background: #334155;
       color: #ffffff !important;
       text-decoration: none;
-      padding: 10px 16px;
+      padding: 9px 16px;
       border-radius: 8px;
       font-weight: 600;
-      font-size: 14px;
-    }
-    .links-summary {
-      background: #0f172a;
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 24px;
-      border: 1px solid #334155;
-    }
-    .links-summary h3 {
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #94a3b8;
-      margin: 0 0 12px 0;
-    }
-    .link-item {
-      padding: 8px 0;
-      border-bottom: 1px solid #1e293b;
       font-size: 13px;
-    }
-    .link-item:last-child {
-      border-bottom: none;
-    }
-    .link-item a {
-      color: #38bdf8;
-      text-decoration: none;
     }
     .footer {
       background: #0f172a;
@@ -195,13 +185,28 @@
         📅 {{ scan_date }}
       </div>
       <div>
-        <span class="badge-count">{{ listings|length }} anunțuri noi</span>
+        <span class="badge-count">{{ total_count }} anunțuri găsite</span>
       </div>
     </div>
 
     <div class="content">
-      {% if listings %}
-        {% for item in listings %}
+      <!-- Main Call-to-Action to Open Live Online Platform -->
+      <div class="hero-cta">
+        <h2 style="margin: 0 0 6px 0; font-size: 18px; color: #ffffff;">🌐 Platforma Live cu Toate Anunțurile</h2>
+        <p style="margin: 0 0 12px 0; font-size: 13px; color: #94a3b8;">
+          Explorează, filtrează pe cartiere (Militari, Drumul Taberei, Crângași, Politehnica etc.) și sortează după preț toate cele <strong>{{ total_count }}</strong> anunțuri.
+        </p>
+        <a href="{{ platform_url }}" target="_blank" class="btn-hero">
+          👉 Deschide Platforma Online ({{ total_count }} Anunțuri) &rarr;
+        </a>
+      </div>
+
+      <h3 style="font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin: 0 0 16px 0;">
+        ⭐ Top Cele Mai Recente Anunțuri de Azi:
+      </h3>
+
+      {% if featured_listings %}
+        {% for item in featured_listings %}
         <div class="card">
           {% if item.thumbnail %}
           <div class="card-img-container">
@@ -230,13 +235,10 @@
               {% if item.year %}
                 <span class="pill">🏗️ An {{ item.year }}</span>
               {% else %}
-                <span class="pill">🏗️ Bloc Nou / După 1977</span>
+                <span class="pill">🏗️ Bloc &gt; 1977</span>
               {% endif %}
               {% if item.surface_sqm %}
                 <span class="pill">📐 {{ item.surface_sqm }} mp</span>
-              {% endif %}
-              {% if item.floor %}
-                <span class="pill">🏢 Etaj {{ item.floor }}</span>
               {% endif %}
             </div>
 
@@ -247,23 +249,19 @@
         </div>
         {% endfor %}
 
-        <div class="links-summary">
-          <h3>🔗 Lista rapidă a tuturor link-urilor:</h3>
-          {% for item in listings %}
-          <div class="link-item">
-            <strong>[{{ item.portal|upper }}]</strong>
-            <a href="{{ item.url }}" target="_blank">
-              {{ item.title }} 
-              {% if item.price %}({{ "{:,.0f}".format(item.price).replace(",", ".") }} {{ item.currency }}){% endif %}
-            </a>
-          </div>
-          {% endfor %}
+        <!-- Bottom CTA -->
+        <div style="text-align: center; padding: 24px 0 10px;">
+          <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 12px;">
+            ...și încă <strong>{{ total_count - featured_listings|length }}</strong> anunțuri disponibile pe platformă.
+          </p>
+          <a href="{{ platform_url }}" target="_blank" class="btn-hero" style="font-size: 15px; padding: 12px 24px;">
+            🌐 Vezi Toate cele {{ total_count }} Anunțuri pe Platformă &rarr;
+          </a>
         </div>
 
       {% else %}
         <div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
           <p style="font-size: 18px; margin: 0 0 8px 0;">Nu au fost găsite anunțuri noi în această dimineață.</p>
-          <p style="font-size: 14px; margin: 0;">Următoarea scanare automată va avea loc mâine la ora 08:00.</p>
         </div>
       {% endif %}
     </div>

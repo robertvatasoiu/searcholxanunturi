@@ -38,7 +38,15 @@ def run_cloud_job():
     res = scraper_manager.run_scrape()
     logger.info(f"Scan complete: {res['total_found']} found, {res['new_found']} new.")
 
-    # 2. Get unalerted listings
+    # 2. Generate updated static dashboard for GitHub Pages
+    try:
+        from backend.export_static import generate_static_dashboard
+        out = generate_static_dashboard()
+        logger.info(f"Generated static live dashboard at: {out}")
+    except Exception as e:
+        logger.error(f"Error generating static dashboard: {e}")
+
+    # 3. Get unalerted listings and send digest
     unalerted = database.get_unalerted_listings()
     logger.info(f"Unalerted listings: {len(unalerted)}")
 
