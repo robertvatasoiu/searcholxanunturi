@@ -209,48 +209,50 @@ function renderListings(items) {
       ? `${Math.round(item.price).toLocaleString("ro-RO")} ${item.currency}` 
       : "Preț la cerere";
 
-    const portalClass = `chip-${item.portal}`;
-    const newBadge = !item.is_alerted ? `<span class="new-badge">✨ NOU</span>` : "";
+    const sqmPrice = (item.price && item.surface_sqm && item.surface_sqm > 0)
+      ? `${Math.round(item.price / item.surface_sqm).toLocaleString("ro-RO")} €/mp`
+      : "";
 
+    const portalClass = item.portal.toLowerCase();
     const fallbackImg = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop";
     const imgUrl = item.thumbnail || fallbackImg;
 
     const yearBadge = item.year 
-      ? `<span class="tag-item highlight-year">🏗️ An ${item.year}</span>`
-      : `<span class="tag-item highlight-year">🏗️ &gt;1977</span>`;
+      ? `<span class="year-chip-badge">An ${item.year}</span>`
+      : `<span class="year-chip-badge">&gt;1977</span>`;
 
     const surfBadge = item.surface_sqm 
-      ? `<span class="tag-item">📐 ${item.surface_sqm} mp</span>` 
-      : "";
-
-    const dateStr = item.date_discovered 
-      ? new Date(item.date_discovered).toLocaleDateString("ro-RO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+      ? `<span class="attr-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg> ${item.surface_sqm} mp</span>` 
       : "";
 
     return `
       <div class="listing-card">
-        <div class="listing-img-box">
-          <img src="${imgUrl}" alt="${escapeHtml(item.title)}" class="listing-img" onerror="this.src='${fallbackImg}'">
-          ${newBadge}
-          <span class="portal-badge-corner portal-chip ${portalClass}">${item.portal}</span>
+        <div class="card-media">
+          <img src="${imgUrl}" alt="${escapeHtml(item.title)}" class="card-img" onerror="this.src='${fallbackImg}'">
+          <span class="portal-badge ${portalClass}">${item.portal}</span>
+          ${yearBadge}
         </div>
-        <div class="listing-content">
-          <div class="listing-price-row">
-            <div class="listing-price">${priceFormatted}</div>
+        <div class="card-content">
+          <div class="card-price-row">
+            <div class="price-main">${priceFormatted}</div>
+            ${sqmPrice ? `<div class="price-sqm">${sqmPrice}</div>` : ''}
           </div>
-          <a href="${item.url}" target="_blank" class="listing-card-title" title="${escapeHtml(item.title)}">
+          <a href="${item.url}" target="_blank" class="card-title" title="${escapeHtml(item.title)}">
             ${escapeHtml(item.title)}
           </a>
-          <div class="listing-tags">
-            <span class="tag-item">📍 ${item.neighborhood || "Sector 6"}</span>
-            <span class="tag-item">🚪 2 Camere</span>
-            ${yearBadge}
+          <div class="card-attributes">
+            <span class="attr-tag">2 Camere</span>
             ${surfBadge}
+            <span class="attr-tag">${item.neighborhood || "Sector 6"}</span>
           </div>
-          <div class="listing-footer">
-            <span class="listing-date">🕒 ${dateStr}</span>
-            <a href="${item.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-weight: 700;">
-              Vezi Anunț &rarr;
+          <div class="card-footer">
+            <span class="card-location">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              ${item.neighborhood || "Sector 6"}
+            </span>
+            <a href="${item.url}" target="_blank" class="btn-open-ad">
+              Vezi Anunț
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
             </a>
           </div>
         </div>

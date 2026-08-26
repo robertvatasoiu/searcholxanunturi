@@ -6,94 +6,120 @@
   <title>Alerte Apartamente Sector 6 București (>1977)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
+    <!-- Top Header -->
     <header>
-      <div class="logo-area">
-        <div class="logo-icon">🏢</div>
-        <div class="brand">
-          <h1>Alerte Imobiliare Sector 6</h1>
-          <p>
-            <span>2 Camere • Construcție &gt; 1977</span>
-            <span class="badge-tag">București</span>
-          </p>
+      <div class="brand-section">
+        <div class="brand-badge-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="20" x="4" y="2" rx="2" ry="2"/>
+            <path d="M9 22v-4h6v4"/>
+            <path d="M8 6h.01"/>
+            <path d="M16 6h.01"/>
+            <path d="M8 10h.01"/>
+            <path d="M16 10h.01"/>
+            <path d="M8 14h.01"/>
+            <path d="M16 14h.01"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>
+            Radar Imobiliar Sector 6
+            <span class="live-pill">
+              <span class="live-dot"></span> Live Local
+            </span>
+          </h1>
+          <div class="brand-meta">
+            <span>2 Camere</span>
+            <span class="separator">•</span>
+            <span>Construcție &gt; 1977</span>
+            <span class="separator">•</span>
+            <span id="headerLastSync">Sincronizat recent</span>
+          </div>
         </div>
       </div>
-      <div class="header-actions">
-        <button id="btnScrapeNow" class="btn btn-primary">
-          <span>🔍</span> Caută Acum
+      <div class="header-controls">
+        <button id="btnScrapeNow" class="btn btn-cloud-run">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          Caută Acum
         </button>
-        <button id="btnSendDigestNow" class="btn btn-success">
-          <span>✉️</span> Trimite Raport Email
+        <button id="btnSendDigestNow" class="btn btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+          Trimite Raport
         </button>
-        <button id="btnOpenSettings" class="btn btn-secondary">
-          <span>⚙️</span> Setări &amp; SMTP
-        </button>
-        <button id="btnExport" class="btn btn-secondary">
-          <span>📥</span> Export
+        <button id="btnOpenSettings" class="btn btn-secondary btn-icon" title="Setări & SMTP">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
         </button>
       </div>
     </header>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-header">
-          <span class="stat-label">Total Anunțuri</span>
-          <div class="stat-icon">📊</div>
+    <!-- Metrics Row -->
+    <div class="metrics-row">
+      <div class="metric-box">
+        <div class="metric-label">
+          <span>Total Anunțuri</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         </div>
-        <div class="stat-value" id="statTotal">0</div>
-        <div class="stat-sub">Monitorizate în baza de date</div>
+        <div class="metric-value" id="statTotal">0</div>
+        <div class="metric-sub">Filtrate strict &gt;1977</div>
       </div>
 
-      <div class="stat-card emerald">
-        <div class="stat-header">
-          <span class="stat-label">Anunțuri Noi</span>
-          <div class="stat-icon">✨</div>
+      <div class="metric-box">
+        <div class="metric-label">
+          <span>Anunțuri Noi Nealertate</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
         </div>
-        <div class="stat-value" id="statNew">0</div>
-        <div class="stat-sub">În așteptarea alertei de dimineață</div>
+        <div class="metric-value" id="statNew" style="color: var(--accent-emerald);">0</div>
+        <div class="metric-sub">Pregătite pentru raport</div>
       </div>
 
-      <div class="stat-card purple">
-        <div class="stat-header">
-          <span class="stat-label">Program Zilnic</span>
-          <div class="stat-icon">⏰</div>
+      <div class="metric-box">
+        <div class="metric-label">
+          <span>Program Zilnic</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <div class="stat-value" id="statSchedule">08:00</div>
-        <div class="stat-sub" id="statNextRun">Următoarea rulare: la 08:00 AM</div>
+        <div class="metric-value" id="statSchedule">08:00</div>
+        <div class="metric-sub" id="statNextRun">În fiecare dimineață</div>
       </div>
 
-      <div class="stat-card amber">
-        <div class="stat-header">
-          <span class="stat-label">Portaluri Active</span>
-          <div class="stat-icon">🌐</div>
+      <div class="metric-box">
+        <div class="metric-label">
+          <span>Surse Monitorizate</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
-        <div class="portals-bar" id="portalStatsBar">
-          <span class="portal-chip chip-olx">OLX: <strong id="cntOlx">0</strong></span>
-          <span class="portal-chip chip-storia">Storia: <strong id="cntStoria">0</strong></span>
-          <span class="portal-chip chip-imobiliare">Imobiliare: <strong id="cntImobiliare">0</strong></span>
-          <span class="portal-chip chip-publi24">Publi24: <strong id="cntPubli24">0</strong></span>
-          <span class="portal-chip chip-anuntul">Anunțul: <strong id="cntAnuntul">0</strong></span>
+        <div class="portal-tags-grid" style="margin-top: 8px;">
+          <div class="portal-counter-tag olx">OLX <span class="count" id="cntOlx">0</span></div>
+          <div class="portal-counter-tag storia">Storia <span class="count" id="cntStoria">0</span></div>
+          <div class="portal-counter-tag imobiliare">Imob <span class="count" id="cntImobiliare">0</span></div>
+          <div class="portal-counter-tag publi24">P24 <span class="count" id="cntPubli24">0</span></div>
+          <div class="portal-counter-tag anuntul">Anunțul <span class="count" id="cntAnuntul">0</span></div>
         </div>
       </div>
     </div>
 
-    <!-- Filters Section -->
-    <div class="filter-card">
-      <div class="filter-grid">
-        <div class="form-group">
-          <label>Cuvinte cheie / Stradă</label>
-          <input type="text" id="filterSearch" class="form-control" placeholder="ex: Drumul Taberei, metrou, mobilat...">
+    <!-- Filter & Search Panel -->
+    <div class="filter-panel">
+      <div class="filter-main-row">
+        <div class="input-wrapper">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input type="text" id="filterSearch" class="form-input" placeholder="Caută după stradă, metrou, renovat...">
         </div>
 
-        <div class="form-group">
-          <label>Portal Sursă</label>
-          <select id="filterPortal" class="form-control">
+        <div>
+          <select id="filterPortal" class="form-select">
             <option value="all">Toate portalurile</option>
             <option value="olx">OLX.ro</option>
             <option value="storia">Storia.ro</option>
@@ -103,9 +129,8 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label>Cartier / Zonă</label>
-          <select id="filterNeighborhood" class="form-control">
+        <div>
+          <select id="filterNeighborhood" class="form-select">
             <option value="all">Toate zonele</option>
             <option value="Militari">Militari</option>
             <option value="Drumul Taberei">Drumul Taberei</option>
@@ -118,213 +143,99 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label>Status Alertă</label>
-          <select id="filterStatus" class="form-control">
-            <option value="all">Toate</option>
-            <option value="new">Doar Noi (Nealertate)</option>
-            <option value="sent">Trimise pe Email</option>
-          </select>
+        <div>
+          <input type="number" id="filterMaxPrice" class="form-input" style="padding-left: 14px;" placeholder="Preț Max (€)">
         </div>
 
-        <div class="form-group">
-          <label>Preț Max (€)</label>
-          <input type="number" id="filterMaxPrice" class="form-control" placeholder="ex: 120000">
-        </div>
-
-        <div class="form-group">
-          <button id="btnResetFilters" class="btn btn-secondary" style="height: 42px;">
+        <div>
+          <button id="btnResetFilters" class="btn btn-secondary" style="height: 40px; width: 100%;">
             Resetare
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Listings Section -->
-    <div class="listings-header">
-      <div class="listings-title">
-        <span>Anunțuri Găsite</span>
-        <span id="resultsCount" class="badge-tag" style="margin-left: 8px;">0</span>
-      </div>
-      <div>
-        <button id="btnMarkAllAlerted" class="btn btn-secondary btn-sm">
-          ✓ Marchează toate ca alertate
-        </button>
+    <!-- Results Header -->
+    <div class="results-bar">
+      <div class="results-count-title">
+        Afișare: <strong id="resultsCount">0</strong> anunțuri
       </div>
     </div>
 
-    <div id="listingsGrid" class="listings-grid">
-      <!-- Injected dynamically by app.js -->
-    </div>
+    <!-- Listings Grid -->
+    <div id="listingsGrid" class="listings-grid"></div>
 
-    <div id="pagination" class="pagination">
-      <!-- Pagination buttons injected by app.js -->
-    </div>
+    <!-- Pagination -->
+    <div id="pagination" class="pagination"></div>
   </div>
 
   <!-- Scraping Progress Modal -->
   <div id="scrapeModal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-header">
-        <h3>🔍 Scanare Anunțuri în Desfășurare</h3>
-        <button class="close-btn" onclick="closeModal('scrapeModal')">&times;</button>
+        <h3 id="scrapeModalTitle">Scanare în Curs...</h3>
+        <button class="btn-close" id="btnCloseScrapeModal">&times;</button>
       </div>
       <div class="modal-body">
-        <p id="scrapeStatusText" style="font-weight: 600; margin-bottom: 8px;">Interogare portaluri imobiliare...</p>
+        <p id="scrapeModalStatus" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+          Se accesează OLX.ro, Storia.ro, Imobiliare.ro, Publi24.ro și Anunțul.ro...
+        </p>
         <div class="progress-container">
           <div id="scrapeProgressBar" class="progress-bar"></div>
         </div>
-        <div id="scrapeLogs" class="log-box"></div>
+        <div id="scrapeLogBox" class="log-box"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('scrapeModal')">Închide fereastra</button>
+        <button id="btnDoneScrape" class="btn btn-primary" style="display: none;">Închide</button>
       </div>
     </div>
   </div>
 
-  <!-- Settings & Notifications Modal -->
+  <!-- Settings Modal -->
   <div id="settingsModal" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 600px;">
       <div class="modal-header">
-        <h3>⚙️ Configurare Alerte &amp; Trimitere</h3>
-        <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+        <h3>Configurare Servicii &amp; Notificări</h3>
+        <button class="btn-close" id="btnCloseSettings">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
         <form id="settingsForm">
-          
-          <!-- Method Selection Tabs / Selector -->
-          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
-            <label style="font-weight: 700; font-size: 13px; color: var(--accent-cyan); display: block; margin-bottom: 8px;">
-              🚀 CUM VREI SĂ PRIMEȘTI ALERTELE ZILNICE LA ORA 08:00?
-            </label>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #1e293b; padding: 8px 12px; border-radius: 8px; border: 1px solid #334155;">
-                <input type="radio" name="notifChannel" value="resend" id="optResend">
-                <span>✉️ <strong>Resend / Brevo</strong> (Email de Sistem)</span>
-              </label>
-              <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #1e293b; padding: 8px 12px; border-radius: 8px; border: 1px solid #334155;">
-                <input type="radio" name="notifChannel" value="telegram" id="optTelegram">
-                <span>📱 <strong>Telegram Bot</strong> (Pe Telefon)</span>
-              </label>
-              <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: #1e293b; padding: 8px 12px; border-radius: 8px; border: 1px solid #334155;">
-                <input type="radio" name="notifChannel" value="smtp" id="optSmtp">
-                <span>⚙️ <strong>Server SMTP</strong> (Manual)</span>
-              </label>
+          <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">
+            1. Email / Resend API (Recomandat)
+          </h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Resend API Key</label>
+              <input type="password" id="cfgResendApiKey" class="form-input" style="padding-left: 12px;" placeholder="re_...">
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Email Destinatar</label>
+              <input type="email" id="cfgRecipientEmail" class="form-input" style="padding-left: 12px;" placeholder="tu@email.com">
             </div>
           </div>
 
-          <!-- Section: Resend / Brevo System Mail -->
-          <div id="sectionResend" style="margin-bottom: 20px;">
-            <div style="background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 12px; font-size: 13px; color: #cbd5e1;">
-              💡 <strong>Cum funcționează:</strong> Folosește un server cloud autorizat (precum <a href="https://resend.com" target="_blank" style="color: #38bdf8; text-decoration: underline;">resend.com</a> - gratuit) care trimite email-ul de la o adresă de sistem (ex: <code>onboarding@resend.dev</code>) direct în căsuța ta de email, <strong>fără să fie nevoie să-ți folosești adresa personală ca expeditor</strong>!
+          <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">
+            2. Program Zilnic Scanare
+          </h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Ora Rulării (0-23)</label>
+              <input type="number" id="cfgScheduleHour" class="form-input" style="padding-left: 12px;" value="8">
             </div>
-            
-            <div class="form-group" style="margin-bottom: 12px;">
-              <label>API Key Resend (gratuit pe resend.com)</label>
-              <input type="password" id="resendApiKey" class="form-control" placeholder="re_123456789...">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 12px;">
-              <label>Adresa ta de email (unde vrei să primești alertele)</label>
-              <input type="text" id="resendRecipients" class="form-control" placeholder="adresa.ta@gmail.com, adresa2@yahoo.com">
-            </div>
-
-            <button type="button" id="btnTestResend" class="btn btn-secondary btn-sm">
-              🧪 Trimite email de test prin Resend
-            </button>
-          </div>
-
-          <!-- Section: Telegram Bot -->
-          <div id="sectionTelegram" style="display: none; margin-bottom: 20px;">
-            <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 12px; font-size: 13px; color: #cbd5e1;">
-              📱 <strong>Notificări directe pe telefon:</strong> Creează un bot gratuit pe Telegram în 30 de secunde prin <code>@BotFather</code> și primești fiecare anunț nou instant cu poze și linkuri la ora 08:00!
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-              <div class="form-group">
-                <label>Telegram Bot Token</label>
-                <input type="text" id="tgBotToken" class="form-control" placeholder="123456789:ABCdefGHIjk...">
-              </div>
-              <div class="form-group">
-                <label>Telegram Chat ID</label>
-                <input type="text" id="tgChatId" class="form-control" placeholder="ex: 12345678 sau @nume_canal">
-              </div>
-            </div>
-
-            <button type="button" id="btnTestTelegram" class="btn btn-secondary btn-sm">
-              🧪 Testează notificarea Telegram
-            </button>
-          </div>
-
-          <!-- Section: SMTP Standard -->
-          <div id="sectionSmtp" style="display: none; margin-bottom: 20px;">
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px;">
-              <div class="form-group">
-                <label>Server SMTP (Host)</label>
-                <input type="text" id="smtpHost" class="form-control" placeholder="smtp.gmail.com">
-              </div>
-              <div class="form-group">
-                <label>Port</label>
-                <input type="number" id="smtpPort" class="form-control" placeholder="587">
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-              <div class="form-group">
-                <label>Utilizator / Email Expeditor</label>
-                <input type="text" id="smtpUser" class="form-control" placeholder="expeditor@domeniu.ro">
-              </div>
-              <div class="form-group">
-                <label>Parolă SMTP</label>
-                <input type="password" id="smtpPassword" class="form-control" placeholder="Parolă / App Password">
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 12px;">
-              <label>Destinatari Alerte (separați prin virgulă)</label>
-              <input type="text" id="smtpRecipients" class="form-control" placeholder="email1@domeniu.ro, email2@domeniu.ro">
-            </div>
-
-            <button type="button" id="btnTestSmtp" class="btn btn-secondary btn-sm">
-              🧪 Testează conexiunea SMTP
-            </button>
-          </div>
-
-          <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
-
-          <h4 style="margin-bottom: 12px; color: var(--accent-purple); font-size: 15px;">⏰ Program Rulare &amp; Criterii</h4>
-          
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-            <div class="form-group">
-              <label>Ora Rulării Zilnice (0-23)</label>
-              <input type="number" id="scheduleHour" class="form-control" min="0" max="23" value="8">
-            </div>
-            <div class="form-group">
-              <label>Minutul (0-59)</label>
-              <input type="number" id="scheduleMinute" class="form-control" min="0" max="59" value="0">
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-            <div class="form-group">
-              <label>An Minim Construcție</label>
-              <input type="number" id="searchMinYear" class="form-control" value="1978">
-            </div>
-            <div class="form-group">
-              <label>Număr Camere</label>
-              <input type="number" id="searchRooms" class="form-control" value="2" readonly>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Minutul (0-59)</label>
+              <input type="number" id="cfgScheduleMinute" class="form-input" style="padding-left: 12px;" value="0">
             </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Anulează</button>
-        <button class="btn btn-primary" id="btnSaveSettings">Salvează Setările</button>
+        <button class="btn btn-secondary" id="btnCancelSettings">Anulează</button>
+        <button class="btn btn-primary" id="btnSaveSettings">Salvează Modificările</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notifications Container -->
   <div id="toastContainer" class="toast-container"></div>
 
   <script src="/static/js/app.js"></script>
