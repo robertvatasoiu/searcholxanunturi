@@ -1,6 +1,6 @@
 # 🏢 Platformă Monitorizare & Alerte Imobiliare Sector 6 (București)
 
-Platformă automată dedicată căutării și notificării zilnice pentru anunțuri noi de **apartamente cu 2 camere**, în **Sectorul 6, București**, cu an de construcție **după 1977** (`> 1977`).
+Platformă automată dedicată căutării, filtrării stricte și notificării zilnice pentru anunțuri noi de **apartamente cu 2 camere**, în **Sectorul 6, București**, cu an de construcție **după 1977** (`> 1977`, minim 1978 sau blocuri noi).
 
 Agregă în timp real anunțuri de pe cele mai mari 5 portaluri imobiliare din România:
 - 🟢 **OLX.ro**
@@ -11,119 +11,122 @@ Agregă în timp real anunțuri de pe cele mai mari 5 portaluri imobiliare din R
 
 ---
 
-## 🚀 Caracteristici Cheie
+## 🌐 Platforma Online Live (GitHub Pages)
 
-1. **Filtrare Precisă**:
-   - Locație: București, Sector 6 (Militari, Drumul Taberei, Crângași, Ghencea, Politehnica, Grozăvești, etc.)
-   - Tip: Apartamente 2 camere de vânzare
-   - An de construcție: `> 1977` (1978 onwards, blocuri noi / după 2000)
-2. **Notificare Automată Zilnică (Ora 08:00)**:
-   - În fiecare dimineață la ora 08:00 scanează automat toate portalurile.
-   - Identifică anunțurile noi (deduplicare inteligentă prin SQLite `listings.db`).
-   - Trimite un raport email HTML responsive cu imagini, detalii, preț și link-uri directe către anunțuri.
-3. **Panou de Control Web Modern**:
-   - Dashboard dark-mode cu glassmorphism.
-   - Statistici în timp real (total anunțuri, anunțuri noi, distribuție pe portaluri).
-   - Declanșare manuală a căutării ("*Caută Acum*") cu bară de progres și log-uri live.
-   - Trimitere instantă a raportului pe email ("*Trimite Raport Email*").
-   - Explorator avansat de anunțuri cu filtrare după portal, cartier, preț, cuvinte cheie și status.
-   - Configurare simplă din interfață pentru SMTP (Gmail, Yahoo, Outlook, custom) și destinatari.
-   - Export anunțuri în CSV / JSON.
+Platforma este găzduită online 100% gratuit și disponibilă permanent la:
+👉 **[https://robertvatasoiu.github.io/searcholxanunturi/](https://robertvatasoiu.github.io/searcholxanunturi/)**
+
+* **Optimizat pentru telefon:** Antetul face scroll natural odată cu pagina și nu blochează ecranul.
+* **Filtrare dinamică:** Căutare rapidă după stradă/metrou, filtrare după cartier (*Drumul Taberei, Militari, Crângași, Politehnica, Grozăvești, Lujerului, Gorjului etc.*) și sortare după preț.
 
 ---
 
-## 📦 Instalare & Pornire Rapidă
+## ⚡ Căutare la Cerere Direct de pe Telefon (Laptop Oprit)
 
-### 1. Clonare & Mediu Virtual
+Pe platforma online găsești butonul **„⚡ Caută Acum în Cloud”**. 
+Când apeși pe el de pe telefon sau calculator, acesta pornește instant mașina virtuală din **GitHub Actions**, scanează toate cele 5 portaluri, trimite notificarea și actualizează platforma în aproximativ 30-45 de secunde!
 
-Mediul virtual `venv` este deja configurat în acest folder. Dacă doriți să îl reinstalați:
+### 🔑 Configurare Token (O singură dată per telefon/dispozitiv):
+Pentru ca telefonul tău să aibă permisiunea de a comanda serverul GitHub:
+1. La prima apăsare a butonului pe telefon, se va deschide o fereastră.
+2. Apasă pe link-ul: **[Generare Token GitHub](https://github.com/settings/tokens/new?scopes=repo,workflow&description=Imobiliare+Sector+6+Trigger)**.
+3. Derulează în jos pe pagina GitHub și apasă butonul verde **„Generate token”**.
+4. Copiază token-ul generat (începe cu `ghp_...`) și lipește-l în căsuță.
+5. Se salvează în memoria browserului (`localStorage`) și nu va mai trebui introdus niciodată pe acel dispozitiv.
+
+---
+
+## 🔍 Filtrare Avansată a Anului de Construcție (>1977)
+
+Platforma include un modul dedicat de validare ([backend/year_filter.py](backend/year_filter.py)) care elimină erorile și trucurile de marketing ale agențiilor imobiliare:
+* **Prioritate pentru anul de construcție al blocului:** Dacă un vânzător pune în titlu *„Apartament renovat 2026”*, dar în text scrie *„bloc construit în 1972”*, sistemul identifică anul real al structurii și **respinge automat anunțul**.
+* **Detecție extinsă pre-1978:** Caută sintagme precum *„bloc '68”*, *„construit în 1974”*, *„înainte de 1977”*, *„bloc rusesc”*, *„pre-1977”*.
+* **Verificare completă:** Analizează titlul, descrierea integrală, parametrii tehnici și etichetele portalului.
+
+---
+
+## ✉️ Alerte Zilnice Inteligente (Ora 08:00 AM)
+
+* **Email Compact & Rapid:** Trimite un email curat cu **Top 12 cele mai noi anunțuri** ale dimineții (pentru a se încărca instant și a nu fi trunchiat de Gmail) și un buton mare:
+  👉 **„🌐 Deschide Platforma Online (Vezi Toate Anunțurile) →”**
+* **Opțiuni de Trimitere fără Cont Personal:**
+  1. **Resend API (Recomandat):** Trimite de la o adresă de sistem (`onboarding@resend.dev`) fără a expune parola sau adresa ta personală.
+  2. **Telegram Bot:** Notificări push instant cu poze și linkuri direct pe telefon în aplicația Telegram.
+  3. **SMTP Clasic:** Opțiune pentru servere dedicate.
+
+---
+
+## ☁️ Automatizare 24/7 în GitHub Actions
+
+Workflow-ul [.github/workflows/daily_scan.yml](.github/workflows/daily_scan.yml) rulează complet autonom în cloud:
+1. **La ora 08:00 AM (ora României)** pornește automat serverul GitHub.
+2. Descarcă baza de date `data/listings.db` salvată în repository.
+3. Rulează scrapers-urile pe cele 5 portaluri și compară cu anunțurile existente (pentru a nu trimite duplicate).
+4. Trimite notificarea pe Email / Telegram.
+5. Regenerează pagina web `docs/index.html` și o publică pe **GitHub Pages**.
+6. Salvează baza de date actualizată direct în repozitoriu printr-un commit automat.
+
+### Secrete GitHub Necesare (Settings -> Secrets and variables -> Actions):
+* `RESEND_API_KEY`: Cheia gratuită de pe [resend.com](https://resend.com).
+* `RECIPIENT_EMAIL`: Adresa ta de email unde primești alertele.
+* *(Opțional)* `TELEGRAM_BOT_TOKEN` și `TELEGRAM_CHAT_ID` pentru Telegram.
+
+---
+
+## 💻 Rulare Locală pe Mac / PC (Opțional)
+
+Dacă doriți să porniți serverul web și interfața locală de administrare:
 
 ```bash
+# 1. Activare mediu virtual și instalare
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-```
 
-### 2. Pornire Dashboard Web
-
-Rulați scriptul de pornire:
-
-```bash
+# 2. Pornire Panou de Control Web Local
 ./start_dashboard.sh
-```
+# Deschide în browser: http://localhost:8000
 
-Apoi deschideți în browser: **[http://localhost:8000](http://localhost:8000)**
-
-Serverul pornește automat și scheduler-ul de fundal pentru ora 08:00 AM.
-
----
-
-## ✉️ Configurare Notificări Email (SMTP)
-
-Pentru a primi alertele pe email:
-1. Deschideți interfața web la `http://localhost:8000`.
-2. Faceți click pe butonul **"⚙️ Setări & SMTP"**.
-3. Bifați **"Activează trimiterea automată de email-uri"**.
-4. Introduceți datele contului dvs. de email:
-   - **Pentru Gmail**:
-     - Host: `smtp.gmail.com`
-     - Port: `587`
-     - Utilizator: `adresa.ta@gmail.com`
-     - Parolă: O **Parolă pentru aplicații (App Password)** generată din contul Google (*Securitate -> Verificare în doi pași -> Parole pentru aplicații*).
-   - **Pentru Yahoo / Outlook**: Host-ul și portul standard aferente.
-5. Adăugați adresa/adresele de email ale destinatarilor (ex: `adresa1@gmail.com, adresa2@yahoo.com`).
-6. Faceți click pe **"🧪 Testează conexiunea SMTP"** pentru a valida trimiterea.
-7. Faceți click pe **"Salvează Setările"**.
-
----
-
-## ⏰ Rulare Manuală & Automatizare Cron / macOS Launchd
-
-Puteți rula căutarea și trimiterea emailului oricând doriți direct din terminal sau automatiza prin Cron:
-
-### Rulare Imediată din Terminal:
-```bash
+# 3. Rulare scanare manuală din terminal
 ./run_daily.sh
 ```
 
-### Programare via Crontab (în fiecare zi la 08:00):
-```bash
-crontab -e
-```
-Adăugați linia:
-```cron
-0 8 * * * /Users/robertvatasoiu/Desktop/LUCREZ/olx_cautare/run_daily.sh >> /Users/robertvatasoiu/Desktop/LUCREZ/olx_cautare/cron.log 2>&1
-```
-
 ---
 
-## 📁 Structura Fișierelor
+## 📁 Structura Proiectului
 
 ```
 olx_cautare/
+├── .github/workflows/
+│   └── daily_scan.yml         # Automatizare GitHub Actions zilnic la ora 08:00
 ├── backend/
-│   ├── config.py              # Management configurație (config.json)
-│   ├── database.py            # SQLite listings.db (anunțuri, dedup, istoric)
-│   ├── email_service.py       # Generator HTML email & client SMTP
-│   ├── manager.py             # Agregator de căutare multi-portal
-│   ├── scheduler.py           # Scheduler APScheduler zilnic ora 08:00
+│   ├── cloud_runner.py        # Executabil pentru mediul cloud / GitHub Actions
+│   ├── config.py              # Management setări (SMTP, Resend, Telegram, Căutare)
+│   ├── database.py            # SQLite listings.db & deduplicare anunțuri
+│   ├── email_service.py       # Generator email HTML compact & trimitere Resend/SMTP/Telegram
+│   ├── export_static.py       # Generator platformă web statică pentru GitHub Pages
+│   ├── manager.py             # Coordonator multi-portal & poartă de filtrare an
+│   ├── scheduler.py           # APScheduler pentru rulare automată locală
+│   ├── year_filter.py         # Motor de validare strictă a anului de construcție (>1977)
 │   └── scrapers/
-│       ├── base.py            # Model de date Listing & interfață scraper
+│       ├── base.py            # Model unificat Listing
 │       ├── olx_scraper.py     # Scraper OLX.ro
 │       ├── storia_scraper.py  # Scraper Storia.ro
 │       ├── imobiliare_scraper.py # Scraper Imobiliare.ro
 │       ├── publi24_scraper.py # Scraper Publi24.ro
-│       └── anuntul_scraper.py # Scraper Anuntul.ro
+│       └── anuntul_scraper.py # Scraper Anunțul.ro (Anunțul Telefonic)
+├── docs/
+│   └── index.html             # Platforma live găzduită pe GitHub Pages
 ├── web/
-│   ├── server.py              # Server FastAPI & API REST
-│   ├── static/
-│   │   ├── css/style.css      # Design modern Dark Glassmorphism
-│   │   └── js/app.js          # Interfață dinamică & AJAX
+│   ├── server.py              # Server FastAPI local cu REST API
+│   ├── static/css/style.css   # Stiluri moderne Dark Mode & Mobile Responsive
+│   ├── static/js/app.js       # Interfață dinamică panou local
 │   └── templates/
-│       ├── index.html         # Dashboard principal
-│       └── email_template.html# Șablon email alerte zilnice
-├── run_daily.sh               # Script pentru rulare zilnică / cron
-├── start_dashboard.sh         # Script pornire dashboard web
+│       ├── index.html         # Șablon dashboard local
+│       └── email_template.html# Șablon email alerte
+├── config.example.json        # Șablon configurație fără date secrete
+├── run_daily.sh               # Script rulare zilnică locală
+├── start_dashboard.sh         # Script pornire dashboard local
 ├── requirements.txt           # Dependențe Python
 └── README.md                  # Documentație completă
 ```
