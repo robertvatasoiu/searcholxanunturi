@@ -97,11 +97,19 @@ class ImobiliareScraper(BaseScraper):
                 except ValueError:
                     pass
 
-            # Year
-            year_match = re.search(r"\b(19\d\d|20\d\d)\b", card_text)
-            year_val = int(year_match.group(1)) if year_match else None
-            if year_val and year_val < min_year:
-                continue  # Exclude old buildings
+            # Year & pre-1978 validation
+            from backend.year_filter import evaluate_listing_year
+            is_valid, detected_year, reason = evaluate_listing_year(
+                explicit_year=None,
+                title=title,
+                description=card_text,
+                min_year=min_year
+            )
+            if not is_valid:
+                logger.info(f"Discarding Imobiliare ad <= 1977: '{title}' | Reason: {reason}")
+                continue
+
+            year_val = detected_year
 
             # Surface
             surf_match = re.search(r"(\d+(?:[\.,]\d+)?)\s*mp", card_text, re.IGNORECASE)

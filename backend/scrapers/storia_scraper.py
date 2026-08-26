@@ -124,10 +124,20 @@ class StoriaScraper(BaseScraper):
         # Surface
         surface = it.get("areaInSquareMeters")
 
-        # Year
+        # Year & text check
+        from backend.year_filter import evaluate_listing_year
         build_year = it.get("buildYear")
-        if build_year and isinstance(build_year, int) and build_year < min_year:
+        is_valid, detected_yr, reason = evaluate_listing_year(
+            explicit_year=build_year,
+            title=title,
+            description=str(it),
+            min_year=min_year
+        )
+        if not is_valid:
+            logger.info(f"Discarding Storia ad <= 1977: '{title}' | Reason: {reason}")
             return None
+        
+        final_year = build_year or detected_yr
 
         # Location details
         location_obj = it.get("location", {})

@@ -161,16 +161,29 @@ class OLXScraper(BaseScraper):
                     param_map[key] = str(val) if val is not None else ""
 
         # Year check
+        from backend.year_filter import evaluate_listing_year
         constructie = str(param_map.get("constructie", ""))
-        year_num = None
-        if "inainte de 1977" in constructie.lower():
-            return None  # Filter out
-        elif "dupa 2000" in constructie.lower():
-            year_num = 2005
+        explicit_year_cand = None
+        if "dupa 2000" in constructie.lower():
+            explicit_year_cand = 2005
         elif "1990 - 2000" in constructie.lower():
-            year_num = 1995
+            explicit_year_cand = 1995
         elif "1977 - 1990" in constructie.lower():
-            year_num = 1982
+            explicit_year_cand = 1982
+        elif "inainte de 1977" in constructie.lower():
+            return None
+
+        is_valid, detected_yr, reason = evaluate_listing_year(
+            explicit_year=explicit_year_cand,
+            title=title,
+            description=f"{ad.get('description', '')} {constructie}",
+            min_year=min_year
+        )
+        if not is_valid:
+            logger.info(f"Discarding OLX ad <= 1977: '{title}' | Reason: {reason}")
+            return None
+        
+        year_num = explicit_year_cand or detected_yr
 
         # Check surface
         surface_val = None

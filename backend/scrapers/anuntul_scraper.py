@@ -81,23 +81,17 @@ class AnuntulScraper(BaseScraper):
                 # Tags parsing (e.g. 'An 1981', 'Suprafata 55 mp', 'Decomandat', 'Etaj 6 din 10')
                 tags = [t.text.strip() for t in card.select(".anunt-etichete span, .badge")]
                 
-                # Year check
-                year_val = None
-                # Check in tags
-                for t in tags:
-                    ym = re.search(r"An\s*([12]\d{3})", t, re.I)
-                    if ym:
-                        year_val = int(ym.group(1))
-                        break
-                
-                # Check in card text if not in tags
-                if not year_val:
-                    ym = re.search(r"(?:bloc|an|anul|constructie|finalizat)\s*(?:in|din|:|–|-)?\s*([12]\d{3})", card_text, re.I)
-                    if ym:
-                        year_val = int(ym.group(1))
-
-                # Strictly filter out year < min_year if found
-                if year_val and year_val < min_year:
+                # Strict Year check using evaluate_listing_year
+                from backend.year_filter import evaluate_listing_year
+                is_valid, year_val, reason = evaluate_listing_year(
+                    explicit_year=None,
+                    title=title_text,
+                    description=card_text,
+                    tags=tags,
+                    min_year=min_year
+                )
+                if not is_valid:
+                    logger.info(f"Discarding Anuntul ad <= 1977: '{title_text}' | Reason: {reason}")
                     continue
 
                 # ID

@@ -85,13 +85,17 @@ class Publi24Scraper(BaseScraper):
                 detail_text = detail_el.text.strip() if detail_el else ""
 
                 # Year parsing & checking
+                from backend.year_filter import evaluate_listing_year
                 all_text = f"{title_text} {detail_text}"
-                year_match = re.search(r"(?:bloc|an|anul|constructie|finalizat|finalizare)\s*(?:in|din|:|–|-)?\s*([12]\d{3})", all_text, re.I)
-                year_val = None
-                if year_match:
-                    year_val = int(year_match.group(1))
-                    if year_val < min_year:
-                        continue  # Exclude older buildings
+                is_valid, year_val, reason = evaluate_listing_year(
+                    explicit_year=None,
+                    title=title_text,
+                    description=detail_text,
+                    min_year=min_year
+                )
+                if not is_valid:
+                    logger.info(f"Discarding Publi24 ad <= 1977: '{title_text}' | Reason: {reason}")
+                    continue
 
                 # Surface
                 surf_match = re.search(r"(\d+(?:[\.,]\d+)?)\s*mp", all_text, re.I)

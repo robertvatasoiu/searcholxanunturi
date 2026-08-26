@@ -52,9 +52,27 @@ class ScraperManager:
                     rooms=search_cfg.rooms,
                     max_pages=2
                 )
-                logger.info(f"Scraper {portal_key} found {len(items)} items")
-                portal_stats[portal_key] = len(items)
-                all_listings.extend(items)
+                
+                # Apply strict year filter gatekeeper
+                from backend.year_filter import evaluate_listing_year
+                valid_items = []
+                for it in items:
+                    is_valid, detected_yr, reason = evaluate_listing_year(
+                        explicit_year=it.year,
+                        title=it.title,
+                        description=it.description or "",
+                        min_year=search_cfg.min_year
+                    )
+                    if is_valid:
+                        if detected_yr and not it.year:
+                            it.year = detected_yr
+                        valid_items.append(it)
+                    else:
+                        logger.info(f"Filtered out listing <= 1977 [{it.portal}]: '{it.title}' | Reason: {reason}")
+
+                logger.info(f"Scraper {portal_key} found {len(items)} items ({len(valid_items)} valid post-1977)")
+                portal_stats[portal_key] = len(valid_items)
+                all_listings.extend(valid_items)
             except Exception as e:
                 err_msg = f"Eroare la scraping pe {portal_key}: {str(e)}"
                 logger.error(err_msg, exc_info=True)
