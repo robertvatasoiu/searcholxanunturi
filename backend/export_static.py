@@ -23,6 +23,51 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
       font-size: 11px;
       font-weight: 700;
     }
+    .btn-cloud-trigger {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      color: #ffffff !important;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+      transition: all 0.25s ease;
+      font-size: 14px;
+    }
+    .btn-cloud-trigger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
+    }
+    .cloud-status-banner {
+      display: none;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      border-radius: 16px;
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.3s ease;
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -41,11 +86,36 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
         </div>
       </div>
       <div class="header-actions">
-        <span style="font-size: 14px; font-weight: 700; color: #38bdf8;">
-          __TOTAL_COUNT__ Anunțuri Active
-        </span>
+        <button id="btnTriggerCloudScan" class="btn-cloud-trigger">
+          <span>⚡</span> Caută Acum în Cloud
+        </button>
+        <button id="btnConfigToken" class="btn btn-secondary btn-sm" title="Configurează Cheie GitHub" style="padding: 10px;">
+          ⚙️
+        </button>
       </div>
     </header>
+
+    <!-- Cloud Status Banner (Visible when cloud scan is triggered) -->
+    <div id="cloudStatusBanner" class="cloud-status-banner">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div class="spinner"></div>
+          <div>
+            <h4 id="cloudStatusTitle" style="color: #fff; font-size: 16px; margin: 0 0 4px 0;">
+              🚀 Scanare lansată în Cloud GitHub Actions!
+            </h4>
+            <p id="cloudStatusDesc" style="color: #94a3b8; font-size: 13px; margin: 0;">
+              Serverul GitHub rulează acum căutarea pe OLX, Storia, Imobiliare, Publi24 și Anunțul.
+            </p>
+          </div>
+        </div>
+        <div>
+          <span id="cloudTimer" style="background: #1e293b; color: #38bdf8; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 13px; border: 1px solid #334155;">
+            Timp: 0s
+          </span>
+        </div>
+      </div>
+    </div>
 
     <!-- Stats Grid -->
     <div class="stats-grid">
@@ -64,7 +134,7 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
           <div class="stat-icon">⏰</div>
         </div>
         <div class="stat-value">08:00 AM</div>
-        <div class="stat-sub">În fiecare dimineață</div>
+        <div class="stat-sub">Zilnic (Cloud GitHub Actions)</div>
       </div>
 
       <div class="stat-card purple">
@@ -163,6 +233,41 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
     <div id="pagination" class="pagination"></div>
   </div>
 
+  <!-- Token Configuration Modal -->
+  <div id="tokenModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚡ Conectare Buton Căutare Cloud</h3>
+        <button class="close-btn" onclick="closeTokenModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 13px; color: #cbd5e1;">
+          💡 Pentru ca butonul <strong>"Caută Acum în Cloud"</strong> să poată porni serverul GitHub direct de pe telefon (chiar dacă laptopul e oprit), ai nevoie de un <strong>GitHub Personal Access Token</strong> (gratuit, se face o singură dată).
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="color: #fff; font-size: 14px; margin-bottom: 8px;">Cum îl obții în 30 de secunde:</h4>
+          <ol style="margin-left: 20px; font-size: 13px; color: #94a3b8; line-height: 1.6;">
+            <li>Apasă pe link-ul pre-completat: <a href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=Imobiliare+Sector+6+Trigger" target="_blank" style="color: #38bdf8; font-weight: 700; text-decoration: underline;">Generare Token GitHub &rarr;</a></li>
+            <li>Derulează jos pe pagina GitHub și apasă butonul verde <strong>"Generate token"</strong>.</li>
+            <li>Copiază token-ul generat (începe cu <code>ghp_...</code>) și lipește-l în căsuța de mai jos:</li>
+          </ol>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label>GitHub Personal Access Token</label>
+          <input type="password" id="inputGithubToken" class="form-control" placeholder="ghp_123456789abcdef...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeTokenModal()">Anulează</button>
+        <button class="btn btn-primary" onclick="saveGithubToken()">Salvează pe acest dispozitiv</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
   <script>
     const ALL_LISTINGS = __JSON_DATA__;
     let currentPage = 1;
@@ -177,6 +282,155 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
     const listingsGrid = document.getElementById('listingsGrid');
     const resultsCount = document.getElementById('resultsCount');
     const pagination = document.getElementById('pagination');
+
+    // Cloud trigger elements
+    const btnTriggerCloudScan = document.getElementById('btnTriggerCloudScan');
+    const btnConfigToken = document.getElementById('btnConfigToken');
+    const tokenModal = document.getElementById('tokenModal');
+    const inputGithubToken = document.getElementById('inputGithubToken');
+    const cloudStatusBanner = document.getElementById('cloudStatusBanner');
+    const cloudTimer = document.getElementById('cloudTimer');
+    const cloudStatusTitle = document.getElementById('cloudStatusTitle');
+    const cloudStatusDesc = document.getElementById('cloudStatusDesc');
+
+    const GITHUB_REPO_OWNER = 'robertvatasoiu';
+    const GITHUB_REPO_NAME = 'searcholxanunturi';
+    const WORKFLOW_ID = 'daily_scan.yml';
+
+    let timerInterval = null;
+    let pollInterval = null;
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function openTokenModal() {
+      inputGithubToken.value = localStorage.getItem('gh_token_imob') || '';
+      tokenModal.classList.add('active');
+    }
+
+    function closeTokenModal() {
+      tokenModal.classList.remove('active');
+    }
+
+    function saveGithubToken() {
+      const token = inputGithubToken.value.trim();
+      if (!token) {
+        showToast('Introduceți un token valid.', 'error');
+        return;
+      }
+      localStorage.setItem('gh_token_imob', token);
+      closeTokenModal();
+      showToast('Token salvat cu succes pe acest dispozitiv!', 'success');
+      triggerCloudScan();
+    }
+
+    async function triggerCloudScan() {
+      const token = localStorage.getItem('gh_token_imob');
+      if (!token) {
+        openTokenModal();
+        return;
+      }
+
+      btnTriggerCloudScan.disabled = true;
+      btnTriggerCloudScan.innerHTML = '<span>⏳</span> Se pornește...';
+
+      cloudStatusBanner.style.display = 'block';
+      cloudStatusTitle.textContent = '🚀 Scanare lansată în Cloud GitHub Actions!';
+      cloudStatusDesc.textContent = 'Serverul GitHub caută acum pe OLX, Storia, Imobiliare, Publi24 și Anunțul. Notificarea va fi trimisă automat pe email/Telegram.';
+
+      let seconds = 0;
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        seconds++;
+        cloudTimer.textContent = `Timp: ${seconds}s`;
+      }, 1000);
+
+      try {
+        const url = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/actions/workflows/${WORKFLOW_ID}/dispatches`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${token}`,
+            'X-GitHub-Api-Version': '2022-11-28'
+          },
+          body: JSON.stringify({ ref: 'main' })
+        });
+
+        if (res.status === 204 || res.status === 200) {
+          showToast('Scanarea a fost pornită cu succes în Cloud!', 'success');
+          pollCloudWorkflow(token);
+        } else if (res.status === 401 || res.status === 403) {
+          showToast('Token GitHub invalid sau expirat. Reintroduceți token-ul.', 'error');
+          localStorage.removeItem('gh_token_imob');
+          openTokenModal();
+          resetTriggerButton();
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          showToast(`Eroare GitHub API (${res.status}): ${errData.message || 'Verificați token-ul'}`, 'error');
+          resetTriggerButton();
+        }
+      } catch (err) {
+        showToast('Eroare de conexiune la GitHub API.', 'error');
+        resetTriggerButton();
+      }
+    }
+
+    function pollCloudWorkflow(token) {
+      let checks = 0;
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(async () => {
+        checks++;
+        try {
+          const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/actions/runs?per_page=1`, {
+            headers: {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const data = await res.json();
+          if (data.workflow_runs && data.workflow_runs.length > 0) {
+            const latest = data.workflow_runs[0];
+            if (latest.status === 'completed') {
+              clearInterval(pollInterval);
+              clearInterval(timerInterval);
+              cloudStatusTitle.textContent = '✅ Scanare Finalizată cu Succes!';
+              cloudStatusDesc.textContent = `Raportul a fost trimis pe Email/Telegram. Reîncărcare pagină cu noile anunțuri...`;
+              setTimeout(() => {
+                window.location.reload();
+              }, 4000);
+            } else if (latest.status === 'in_progress') {
+              cloudStatusDesc.textContent = `Serverul rulează scrapers-urile... (Pas: ${latest.status})`;
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        if (checks > 60) {
+          clearInterval(pollInterval);
+          clearInterval(timerInterval);
+          resetTriggerButton();
+        }
+      }, 5000);
+    }
+
+    function resetTriggerButton() {
+      btnTriggerCloudScan.disabled = false;
+      btnTriggerCloudScan.innerHTML = '<span>⚡</span> Caută Acum în Cloud';
+    }
+
+    btnTriggerCloudScan.addEventListener('click', triggerCloudScan);
+    btnConfigToken.addEventListener('click', openTokenModal);
 
     function applyFilters() {
       const q = filterSearch.value.toLowerCase().trim();
@@ -326,14 +580,12 @@ def generate_static_dashboard(output_path: Path = None) -> Path:
         docs_dir.mkdir(exist_ok=True)
         output_path = docs_dir / "index.html"
 
-    # Get all listings from database
     total, listings = database.get_all_listings(limit=2000)
     stats = database.get_stats()
     
     listings_data = [it.model_dump() for it in listings]
     now_str = datetime.now().strftime("%d.%m.%Y, %H:%M")
 
-    # Read base CSS
     css_file = BASE_DIR / "web" / "static" / "css" / "style.css"
     css_content = css_file.read_text(encoding="utf-8") if css_file.exists() else ""
 
