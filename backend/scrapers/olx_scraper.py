@@ -141,10 +141,18 @@ class OLXScraper(BaseScraper):
                     currency = price_obj.get("currency", "EUR")
                 except ValueError:
                     pass
-            elif price_obj.get("displayValue"):
-                pv, cur = self._parse_price_text(price_obj.get("displayValue"))
-                price_val = pv
-                currency = cur
+        # Check if rental
+        from backend.transaction_filter import is_rental_or_invalid_transaction
+        is_rental, rent_reason = is_rental_or_invalid_transaction(
+            title=title,
+            description=ad.get("description", ""),
+            url=url,
+            price=price_val,
+            currency=currency
+        )
+        if is_rental:
+            logger.info(f"Discarding OLX rental ad: '{title}' | Reason: {rent_reason}")
+            return None
 
         # Parameters
         params = ad.get("params", [])

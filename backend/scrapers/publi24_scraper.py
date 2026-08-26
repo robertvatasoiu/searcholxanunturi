@@ -68,21 +68,26 @@ class Publi24Scraper(BaseScraper):
                 ad_id_val = id_match.group(1) if id_match else full_url.rstrip("/").split("/")[-1]
                 ad_id = Listing.generate_id("publi24", ad_id_val)
 
-                # Price
+                # Price & Currency
+                from backend.transaction_filter import parse_price, is_rental_or_invalid_transaction
                 price_el = el.select_one(".price, .article-price, strong")
-                price_val = None
-                currency = "EUR"
-                if price_el:
-                    ptxt = price_el.text.strip().replace(" ", "").replace("\xa0", "").replace(".", "")
-                    pm = re.search(r"(\d+)", ptxt)
-                    if pm:
-                        price_val = float(pm.group(1))
-                    if "lei" in price_el.text.lower() or "ron" in price_el.text.lower():
-                        currency = "RON"
+                price_val, currency = parse_price(price_el.get_text(separator=" ", strip=True) if price_el else "")
 
                 # Text & details
                 detail_el = el.select_one(".details, .article-details, p")
                 detail_text = detail_el.text.strip() if detail_el else ""
+
+                # Check if rental
+                is_rental, rent_reason = is_rental_or_invalid_transaction(
+                    title=title_text,
+                    description=detail_text,
+                    url=full_url,
+                    price=price_val,
+                    currency=currency
+                )
+                if is_rental:
+                    logger.info(f"Discarding Publi24 rental ad: '{title_text}' | Reason: {rent_reason}")
+                    continue
 
                 # Year parsing & checking
                 from backend.year_filter import evaluate_listing_year

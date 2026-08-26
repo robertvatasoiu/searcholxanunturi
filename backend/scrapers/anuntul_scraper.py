@@ -94,19 +94,24 @@ class AnuntulScraper(BaseScraper):
                     logger.info(f"Discarding Anuntul ad <= 1977: '{title_text}' | Reason: {reason}")
                     continue
 
+                # Price & Rental filter
+                from backend.transaction_filter import parse_price, is_rental_or_invalid_transaction
+                price_val, currency = parse_price(card_text)
+
+                is_rental, rent_reason = is_rental_or_invalid_transaction(
+                    title=title_text,
+                    description=card_text,
+                    url=full_url,
+                    price=price_val,
+                    currency=currency
+                )
+                if is_rental:
+                    logger.info(f"Discarding Anuntul rental ad: '{title_text}' | Reason: {rent_reason}")
+                    continue
+
                 # ID
                 raw_id = card.get("id") or card.get("data-hash") or href
                 ad_id = Listing.generate_id("anuntul", str(raw_id).replace("aid-", ""))
-
-                # Price
-                price_match = re.search(r"(\d+(?:[\.,]\d+)?)\s*€", card_text)
-                price_val = None
-                if price_match:
-                    try:
-                        p_str = price_match.group(1).replace(".", "").replace(",", ".")
-                        price_val = float(p_str)
-                    except ValueError:
-                        pass
 
                 # Surface
                 surf_match = re.search(r"Suprafata\s*(\d+)\s*mp", card_text, re.I)

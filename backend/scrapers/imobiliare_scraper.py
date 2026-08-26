@@ -87,15 +87,20 @@ class ImobiliareScraper(BaseScraper):
                 slug = href.split("/")[-1].replace(f"-{ad_id_val}", "").replace("-", " ")
                 title = slug.capitalize() if slug else "Apartament 2 camere Sector 6"
 
-            # Price
-            price_match = re.search(r"(\d+(?:[\.,]\d+)?)\s*(?:€|EUR)", card_text, re.IGNORECASE)
-            price_val = None
-            if price_match:
-                try:
-                    price_str = price_match.group(1).replace(".", "").replace(",", ".")
-                    price_val = float(price_str)
-                except ValueError:
-                    pass
+            # Price & Rental filter
+            from backend.transaction_filter import parse_price, is_rental_or_invalid_transaction
+            price_val, currency = parse_price(card_text)
+
+            is_rental, rent_reason = is_rental_or_invalid_transaction(
+                title=title,
+                description=card_text,
+                url=href,
+                price=price_val,
+                currency=currency
+            )
+            if is_rental:
+                logger.info(f"Discarding Imobiliare rental ad: '{title}' | Reason: {rent_reason}")
+                continue
 
             # Year & pre-1978 validation
             from backend.year_filter import evaluate_listing_year

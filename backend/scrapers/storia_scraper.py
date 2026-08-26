@@ -121,6 +121,19 @@ class StoriaScraper(BaseScraper):
         price_val = price_obj.get("value")
         currency = price_obj.get("currency", "EUR")
 
+        # Check if rental
+        from backend.transaction_filter import is_rental_or_invalid_transaction
+        is_rental, rent_reason = is_rental_or_invalid_transaction(
+            title=title,
+            description=str(it),
+            url=url,
+            price=price_val,
+            currency=currency
+        )
+        if is_rental:
+            logger.info(f"Discarding Storia rental ad: '{title}' | Reason: {rent_reason}")
+            return None
+
         # Surface
         surface = it.get("areaInSquareMeters")
 

@@ -53,10 +53,24 @@ class ScraperManager:
                     max_pages=2
                 )
                 
-                # Apply strict year filter gatekeeper
+                # Apply strict filters: Year + Sales only (no rentals)
                 from backend.year_filter import evaluate_listing_year
+                from backend.transaction_filter import is_rental_or_invalid_transaction
                 valid_items = []
                 for it in items:
+                    # 1. Check if rental or invalid price
+                    is_rental, rent_reason = is_rental_or_invalid_transaction(
+                        title=it.title,
+                        description=it.description or "",
+                        url=it.url,
+                        price=it.price,
+                        currency=it.currency
+                    )
+                    if is_rental:
+                        logger.info(f"Filtered out rental [{it.portal}]: '{it.title}' | Reason: {rent_reason}")
+                        continue
+
+                    # 2. Check year > 1977
                     is_valid, detected_yr, reason = evaluate_listing_year(
                         explicit_year=it.year,
                         title=it.title,
