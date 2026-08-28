@@ -2,8 +2,9 @@ name: Scanare Imobiliare Sector 6 (Zilnic Ora 08:00)
 
 on:
   schedule:
-    # 05:00 UTC = 08:00 AM ora României (UTC+3)
-    - cron: '0 5 * * *'
+    # 05:15 UTC = 08:15 AM ora României (UTC+3)
+    # Minutele non-rotunde (15, 23) evită cozile de așteptare aglomerate din GitHub Actions
+    - cron: '15 5 * * *'
   workflow_dispatch: # Permite rulare manuală oricând din interfața GitHub
 
 permissions:

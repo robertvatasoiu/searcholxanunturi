@@ -54,7 +54,13 @@ def run_cloud_job():
         success, msg = email_service.send_digest(unalerted)
         logger.info(f"Notification result: {msg}")
     else:
-        logger.info("No new listings found in this run.")
+        logger.info("No brand-new listings found overnight. Sending morning overview of active listings...")
+        total, active_listings = database.get_all_listings(limit=15)
+        if active_listings:
+            success, msg = email_service.send_digest(active_listings[:12])
+            logger.info(f"Daily active overview sent: {msg}")
+        else:
+            logger.info("No listings found in database.")
 
 if __name__ == "__main__":
     run_cloud_job()

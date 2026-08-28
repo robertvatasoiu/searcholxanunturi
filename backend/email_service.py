@@ -79,7 +79,7 @@ class NotificationService:
             if target_recipients:
                 html_content = self.render_email_html(listings)
                 plain_content = self.render_email_plaintext(listings)
-                subject = f"🏠 [{len(listings)} Noi] Apartamente 2 Camere Sector 6 (>1977) - {datetime.now().strftime('%d.%m.%Y')}"
+                subject = f"Radar Imobiliar Sector 6 — {len(listings)} Anunturi Noi ({datetime.now().strftime('%d.%m.%Y')})"
 
                 try:
                     if smtp_cfg.provider == "resend" and smtp_cfg.resend_api_key:
