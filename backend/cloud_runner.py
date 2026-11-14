@@ -38,6 +38,11 @@ def run_cloud_job():
     res = scraper_manager.run_scrape()
     logger.info(f"Scan complete: {res['total_found']} found, {res['new_found']} new.")
 
+    # Ensure no excluded locations (e.g. Militari Residence / Chiajna) remain in DB
+    purged = database.purge_excluded_listings()
+    if purged:
+        logger.info(f"Purged {purged} excluded listings from database.")
+
     # 2. Generate updated static dashboard for GitHub Pages
     try:
         from backend.export_static import generate_static_dashboard

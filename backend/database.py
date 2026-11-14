@@ -183,6 +183,35 @@ def mark_all_as_alerted():
     conn.commit()
     conn.close()
 
+
+def purge_excluded_listings() -> int:
+    """Removes listings matching excluded locations (e.g. Militari Residence / Chiajna) from the DB."""
+    from backend.location_filter import is_excluded_location
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, description, neighborhood, url FROM listings")
+    rows = cursor.fetchall()
+
+    ids_to_delete = []
+    for r in rows:
+        excluded, _ = is_excluded_location(
+            title=r["title"] or "",
+            description=r["description"] or "",
+            neighborhood=r["neighborhood"] or "",
+            url=r["url"] or "",
+        )
+        if excluded:
+            ids_to_delete.append(r["id"])
+
+    if ids_to_delete:
+        placeholders = ",".join("?" for _ in ids_to_delete)
+        cursor.execute(f"DELETE FROM listings WHERE id IN ({placeholders})", ids_to_delete)
+        conn.commit()
+
+    conn.close()
+    return len(ids_to_delete)
+
 def get_all_listings(
     portal: Optional[str] = None,
     neighborhood: Optional[str] = None,

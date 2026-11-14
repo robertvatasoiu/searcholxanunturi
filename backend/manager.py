@@ -53,9 +53,10 @@ class ScraperManager:
                     max_pages=2
                 )
                 
-                # Apply strict filters: Year + Sales only (no rentals)
+                # Apply strict filters: Year + Sales only (no rentals) + Location exclusions
                 from backend.year_filter import evaluate_listing_year
                 from backend.transaction_filter import is_rental_or_invalid_transaction
+                from backend.location_filter import is_excluded_location
                 valid_items = []
                 for it in items:
                     # 1. Check if rental or invalid price
@@ -70,7 +71,18 @@ class ScraperManager:
                         logger.info(f"Filtered out rental [{it.portal}]: '{it.title}' | Reason: {rent_reason}")
                         continue
 
-                    # 2. Check year > 1977
+                    # 2. Exclude Militari Residence / Chiajna
+                    is_excl_loc, loc_reason = is_excluded_location(
+                        title=it.title,
+                        description=it.description or "",
+                        neighborhood=it.neighborhood or "",
+                        url=it.url
+                    )
+                    if is_excl_loc:
+                        logger.info(f"Filtered out excluded location [{it.portal}]: '{it.title}' | Reason: {loc_reason}")
+                        continue
+
+                    # 3. Check year > 1977
                     is_valid, detected_yr, reason = evaluate_listing_year(
                         explicit_year=it.year,
                         title=it.title,
