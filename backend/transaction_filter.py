@@ -72,11 +72,15 @@ def is_rental_or_invalid_transaction(
             if not is_sale_title:
                 return True, f"Titlu indică închiriere: {pat}"
 
-    # 3. Monthly rental price threshold (< 25,000 EUR for a 2-room apartment)
+    # 2.5 Reject explicit 3/4 camere or garsoniera when 2 camere is not mentioned
+    if re.search(r"\b(?:3|4|trei|patru)\s*(?:camere|cam\.?)\b", title_lower, re.IGNORECASE):
+        if not re.search(r"\b(?:2|doua|două)\s*(?:camere|cam\.?)\b", title_lower, re.IGNORECASE):
+            return True, "Titlul indică 3/4 camere, nu 2 camere"
+
+    # 3. Monthly rental or invalid price threshold (< 25,000 EUR for a 2-room apartment)
     if price is not None:
         price_in_eur = price if currency == "EUR" else price / 5.0
-        # If price is typical monthly rent (e.g. 200 EUR - 3,000 EUR)
-        if 50 <= price_in_eur < MIN_SALE_PRICE_EUR:
-            return True, f"Preț de închiriere lunară detectat ({price_in_eur:.0f} EUR < {MIN_SALE_PRICE_EUR:.0f} EUR)"
+        if 0 <= price_in_eur < MIN_SALE_PRICE_EUR:
+            return True, f"Preț de închiriere lunară sau invalid detectat ({price_in_eur:.0f} EUR < {MIN_SALE_PRICE_EUR:.0f} EUR)"
 
     return False, "Vânzare validă"

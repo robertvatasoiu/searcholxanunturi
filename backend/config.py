@@ -39,7 +39,8 @@ class SearchSettings(BaseModel):
     city: str = "Bucuresti"
     max_price: Optional[float] = None
     enabled_portals: List[str] = Field(default_factory=lambda: [
-        "olx", "storia", "imobiliare", "publi24", "anuntul"
+        "olx", "storia", "imobiliare", "publi24", "anuntul",
+        "homezz", "lajumate", "romimo", "imoradar"
     ])
 
 class ScheduleSettings(BaseModel):

@@ -29,6 +29,10 @@
   --portal-imobiliare: #e11d48;
   --portal-publi24: #3b82f6;
   --portal-anuntul: #eab308;
+  --portal-homezz: #8b5cf6;
+  --portal-lajumate: #06b6d4;
+  --portal-romimo: #10b981;
+  --portal-imoradar: #f97316;
 
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -305,6 +309,10 @@ header {
 .portal-counter-tag.imobiliare { border-left: 2px solid var(--portal-imobiliare); }
 .portal-counter-tag.publi24 { border-left: 2px solid var(--portal-publi24); }
 .portal-counter-tag.anuntul { border-left: 2px solid var(--portal-anuntul); }
+.portal-counter-tag.homezz { border-left: 2px solid var(--portal-homezz); }
+.portal-counter-tag.lajumate { border-left: 2px solid var(--portal-lajumate); }
+.portal-counter-tag.romimo { border-left: 2px solid var(--portal-romimo); }
+.portal-counter-tag.imoradar { border-left: 2px solid var(--portal-imoradar); }
 
 /* ==========================================================================
    Filter & Search Control Panel (Refined Studio Interface)
@@ -525,6 +533,10 @@ header {
 .portal-badge.imobiliare { background: rgba(225, 29, 72, 0.85); }
 .portal-badge.publi24 { background: rgba(37, 99, 235, 0.85); }
 .portal-badge.anuntul { background: rgba(234, 179, 8, 0.9); color: #000; }
+.portal-badge.homezz { background: rgba(139, 92, 246, 0.88); }
+.portal-badge.lajumate { background: rgba(6, 182, 212, 0.88); color: #000; }
+.portal-badge.romimo { background: rgba(16, 185, 129, 0.88); color: #000; }
+.portal-badge.imoradar { background: rgba(249, 115, 22, 0.88); }
 
 .year-chip-badge {
   position: absolute;

@@ -13,6 +13,10 @@ const cntStoria = document.getElementById("cntStoria");
 const cntImobiliare = document.getElementById("cntImobiliare");
 const cntPubli24 = document.getElementById("cntPubli24");
 const cntAnuntul = document.getElementById("cntAnuntul");
+const cntHomezz = document.getElementById("cntHomezz");
+const cntLajumate = document.getElementById("cntLajumate");
+const cntRomimo = document.getElementById("cntRomimo");
+const cntImoradar = document.getElementById("cntImoradar");
 const resultsCount = document.getElementById("resultsCount");
 const listingsGrid = document.getElementById("listingsGrid");
 const pagination = document.getElementById("pagination");
@@ -153,6 +157,10 @@ async function loadStats() {
     cntImobiliare.textContent = byPortal.imobiliare || 0;
     cntPubli24.textContent = byPortal.publi24 || 0;
     cntAnuntul.textContent = byPortal.anuntul || 0;
+    if (cntHomezz) cntHomezz.textContent = byPortal.homezz || 0;
+    if (cntLajumate) cntLajumate.textContent = byPortal.lajumate || 0;
+    if (cntRomimo) cntRomimo.textContent = byPortal.romimo || 0;
+    if (cntImoradar) cntImoradar.textContent = byPortal.imoradar || 0;
 
   } catch (err) {
     console.error("Error loading stats:", err);
@@ -471,7 +479,7 @@ async function saveSettings() {
       min_year: parseInt(document.getElementById("searchMinYear").value) || 1978,
       sector: "Sector 6",
       city: "Bucuresti",
-      enabled_portals: ["olx", "storia", "imobiliare", "publi24", "anuntul"]
+      enabled_portals: ["olx", "storia", "imobiliare", "publi24", "anuntul", "homezz", "lajumate", "romimo", "imoradar"]
     }
   };
 

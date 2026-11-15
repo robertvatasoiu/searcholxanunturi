@@ -8,6 +8,10 @@ from backend.scrapers.storia_scraper import StoriaScraper
 from backend.scrapers.imobiliare_scraper import ImobiliareScraper
 from backend.scrapers.publi24_scraper import Publi24Scraper
 from backend.scrapers.anuntul_scraper import AnuntulScraper
+from backend.scrapers.homezz_scraper import HomeZZScraper
+from backend.scrapers.lajumate_scraper import LaJumateScraper
+from backend.scrapers.romimo_scraper import RomimoScraper
+from backend.scrapers.imoradar_scraper import ImoradarScraper
 from backend import database
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -21,6 +25,10 @@ class ScraperManager:
             "imobiliare": ImobiliareScraper(),
             "publi24": Publi24Scraper(),
             "anuntul": AnuntulScraper(),
+            "homezz": HomeZZScraper(),
+            "lajumate": LaJumateScraper(),
+            "romimo": RomimoScraper(),
+            "imoradar": ImoradarScraper(),
         }
 
     def run_scrape(self, progress_callback: Optional[Callable[[str, int], None]] = None) -> Dict[str, Any]:

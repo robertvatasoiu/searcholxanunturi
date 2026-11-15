@@ -27,6 +27,18 @@ EXCLUDED_LOCATION_PATTERNS = [
     (r"\bstr(?:ada)?\.?\s*(?:sg\.?|sergent)\s*ilie\s*petre\b", "Str. Sg. Ilie Petre (Chiajna)"),
 ]
 
+OTHER_SECTOR_PATTERNS = [
+    (r"\bsector(?:ul)?\s*[12345]\b", "Alt sector (Sector 1-5)"),
+    (
+        r"\b(?:pipera|avia[tț]iei|d[aă]m[aă]roaia|b[aă]neasa|bucure[sș]tii\s+noi|"
+        r"fabrica\s+de\s+glucoz[aă]|dimitrie\s+pompeiu|cartierul\s+solar|"
+        r"berceni|pope[sș]ti[\s\-]*leordeni|pallady|theodor\s+pallady|titan|colentina|"
+        r"pantelimon|obor|rahova|ferentari|bragadiru|otopeni|voluntari|tunari|domne[sș]ti|"
+        r"cosmopolis|ap[aă]r[aă]torii\s+patriei|13\s+septembrie)\b",
+        "Zonă în afara Sectorului 6",
+    ),
+]
+
 # Ordered from specific sub-zones to broader Sector 6 neighborhoods
 NEIGHBORHOOD_RULES = [
     (
@@ -35,7 +47,7 @@ NEIGHBORHOOD_RULES = [
             r"\b(?:drumul\s+taberei|dr\.?\s*taberei|favorit|r[aâ]ul\s+doamnei|romancierilor|"
             r"moghioro[sș]|valea\s+ialomi[tț]ei|constantin\s+br[aâ]ncu[sș]i|parc(?:ul)?\s+br[aâ]ncu[sș]i|"
             r"tricodava|chilia\s+veche|poiana\s+muntelui|cetatea\s+histria|t[aâ]rgu\s+neam[tț]|"
-            r"valea\s+arge[sș]ului|bd\.?\s*timi[sș]oara\s*(?:nr\.?\s*)?(?:2\d|3\d|4\d|5\d)|"
+            r"valea\s+arge[sș]ului|bd\.?\s*timi[sș]oara|timi[sș]oara|titel\s+petrescu|"
             r"plaza\s+rom[aâ]nia|mall\s+plaza|str(?:ada)?\.?\s*(?:bra[sș]ov|sibiu))\b",
             re.IGNORECASE,
         ),
@@ -44,7 +56,8 @@ NEIGHBORHOOD_RULES = [
         "Lujerului",
         re.compile(
             r"\b(?:lujerului|pasaj(?:ul)?\s+lujerului|cora\s+lujerului|carrefour\s+lujerului|"
-            r"[sș]os(?:eaua)?\.?\s*virtu[tț]ii|virtu[tț]ii|or[sș]ova|exigent\s+plaza|21\s+residence)\b",
+            r"[sș]os(?:eaua)?\.?\s*virtu[tț]ii|virtu[tț]ii|or[sș]ova|exigent\s+plaza|21\s+residence|"
+            r"gran\s*via|granvia)\b",
             re.IGNORECASE,
         ),
     ),
@@ -60,7 +73,7 @@ NEIGHBORHOOD_RULES = [
         "Crângași",
         re.compile(
             r"\b(?:cr[aâ]nga[sș]i|metrou\s+cr[aâ]nga[sș]i|lacul\s+morii|ceahl[aă]u|"
-            r"constructorilor|9\s+mai|george\s+v[aâ]lsan)\b",
+            r"constructorilor|9\s+mai|george\s+v[aâ]lsan|giule[sș]ti)\b",
             re.IGNORECASE,
         ),
     ),
@@ -76,14 +89,14 @@ NEIGHBORHOOD_RULES = [
         "Grozăvești",
         re.compile(
             r"\b(?:groz[aă]ve[sș]ti|regie|orhideea|carrefour\s+orhideea|"
-            r"economu\s+cezarescu|oncos|pod(?:ul)?\s+groz[aă]ve[sș]ti)\b",
+            r"economu\s+cezarescu|oncos|pod(?:ul)?\s+groz[aă]ve[sș]ti|sema\s+park|sema\s+home|petrache\s+poenaru)\b",
             re.IGNORECASE,
         ),
     ),
     (
         "Ghencea",
         re.compile(
-            r"\b(?:ghencea|prelungirea\s+ghencea|valea\s+oltului|stadion(?:ul)?\s+steaua)\b",
+            r"\b(?:ghencea|prelungirea\s+ghencea|valea\s+oltului|stadion(?:ul)?\s+steaua|drumul\s+s[aă]rii)\b",
             re.IGNORECASE,
         ),
     ),
@@ -92,7 +105,7 @@ NEIGHBORHOOD_RULES = [
         re.compile(
             r"\b(?:militari|p[aă]cii|metrou\s+p[aă]cii|preciziei|metrou\s+preciziei|"
             r"apusului|uverturii|veteranilor|iuliu\s+maniu|rotar\s+park|valea\s+cascadelor|"
-            r"valea\s+lung[aă]|drumul\s+osiei|autogar[aă]\s+militari)\b",
+            r"valea\s+lung[aă]|drumul\s+osiei|autogar[aă]\s+militari|viscolului)\b",
             re.IGNORECASE,
         ),
     ),
@@ -134,6 +147,20 @@ def is_excluded_location(
     for pattern, label in EXCLUDED_LOCATION_PATTERNS:
         if re.search(pattern, combined, re.IGNORECASE):
             return True, f"Zonă exclusă ({label})"
+
+    title_and_url = f"{title or ''} {url or ''}"
+    for pattern, label in OTHER_SECTOR_PATTERNS:
+        if re.search(pattern, title_and_url, re.IGNORECASE):
+            return True, f"Zonă exclusă ({label})"
+
+    # If the title does not explicitly mention a Sector 6 neighborhood, also check description for other sectors
+    has_s6_title = any(regex.search(title or "") for _, regex in NEIGHBORHOOD_RULES) or bool(
+        re.search(r"\bsector(?:ul)?\s*6\b", title or "", re.IGNORECASE)
+    )
+    if not has_s6_title:
+        for pattern, label in OTHER_SECTOR_PATTERNS:
+            if re.search(pattern, cleaned_desc, re.IGNORECASE):
+                return True, f"Zonă exclusă ({label})"
 
     return False, "Zonă validă Sector 6"
 

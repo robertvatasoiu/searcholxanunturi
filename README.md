@@ -2,12 +2,16 @@
 
 Platformă automată dedicată căutării, filtrării stricte și notificării zilnice pentru anunțuri noi de **apartamente cu 2 camere**, în **Sectorul 6, București**, cu an de construcție **după 1977** (`> 1977`, minim 1978 sau blocuri noi).
 
-Agregă în timp real anunțuri de pe cele mai mari 5 portaluri imobiliare din România:
+Agregă în timp real anunțuri de pe cele mai mari 9 portaluri imobiliare din România:
 - 🟢 **OLX.ro**
 - 🟠 **Storia.ro**
 - 🔴 **Imobiliare.ro**
 - 🔵 **Publi24.ro**
 - 🟡 **Anunțul.ro (Anunțul Telefonic)**
+- 🟣 **HomeZZ.ro**
+- 🟢 **LaJumate.ro**
+- 🩵 **Romimo.ro**
+- 🩷 **Imoradar24.ro**
 
 ---
 

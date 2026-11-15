@@ -234,24 +234,50 @@ def mark_all_as_alerted():
 
 
 def purge_excluded_listings() -> int:
-    """Removes listings matching excluded locations (e.g. Militari Residence / Chiajna) from the DB."""
-    from backend.location_filter import is_excluded_location
+    """Removes listings matching excluded locations or invalid transactions/rooms from the DB."""
+    import re
+    from backend.location_filter import is_excluded_location, detect_neighborhood
+    from backend.transaction_filter import is_rental_or_invalid_transaction
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, title, description, neighborhood, url FROM listings")
+    cursor.execute("SELECT id, portal, title, description, neighborhood, url, price, currency FROM listings")
     rows = cursor.fetchall()
 
     ids_to_delete = []
     for r in rows:
+        title = r["title"] or ""
+        desc = r["description"] or ""
+        nb = r["neighborhood"] or ""
+        url = r["url"] or ""
+
         excluded, _ = is_excluded_location(
-            title=r["title"] or "",
-            description=r["description"] or "",
-            neighborhood=r["neighborhood"] or "",
-            url=r["url"] or "",
+            title=title,
+            description=desc,
+            neighborhood=nb,
+            url=url,
         )
         if excluded:
             ids_to_delete.append(r["id"])
+            continue
+
+        is_invalid_tx, _ = is_rental_or_invalid_transaction(
+            title=title,
+            description=desc,
+            url=url,
+            price=r["price"],
+            currency=r["currency"] or "EUR",
+        )
+        if is_invalid_tx:
+            ids_to_delete.append(r["id"])
+            continue
+
+        if r["portal"] == "lajumate":
+            det_nb = detect_neighborhood(title, desc, nb)
+            if det_nb == "Sector 6" and not re.search(
+                r"\b(?:sector(?:ul)?\s*6|sect\.?\s*6)\b", f"{title} {desc}", re.IGNORECASE
+            ):
+                ids_to_delete.append(r["id"])
 
     if ids_to_delete:
         placeholders = ",".join("?" for _ in ids_to_delete)

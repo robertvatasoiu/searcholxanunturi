@@ -130,6 +130,10 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
           <div class="portal-counter-tag imobiliare">Imob <span class="count">__CNT_IMOBILIARE__</span></div>
           <div class="portal-counter-tag publi24">P24 <span class="count">__CNT_PUBLI24__</span></div>
           <div class="portal-counter-tag anuntul">Anunțul <span class="count">__CNT_ANUNTUL__</span></div>
+          <div class="portal-counter-tag homezz">HomeZZ <span class="count">__CNT_HOMEZZ__</span></div>
+          <div class="portal-counter-tag lajumate">LaJumate <span class="count">__CNT_LAJUMATE__</span></div>
+          <div class="portal-counter-tag romimo">Romimo <span class="count">__CNT_ROMIMO__</span></div>
+          <div class="portal-counter-tag imoradar">Imoradar <span class="count">__CNT_IMORADAR__</span></div>
         </div>
       </div>
     </div>
@@ -190,6 +194,10 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
           <button class="chip-btn" data-portal="imobiliare">Imobiliare</button>
           <button class="chip-btn" data-portal="publi24">Publi24</button>
           <button class="chip-btn" data-portal="anuntul">Anunțul</button>
+          <button class="chip-btn" data-portal="homezz">HomeZZ</button>
+          <button class="chip-btn" data-portal="lajumate">LaJumate</button>
+          <button class="chip-btn" data-portal="romimo">Romimo</button>
+          <button class="chip-btn" data-portal="imoradar">Imoradar24</button>
         </div>
 
         <div class="pill-group" id="pricePills">
@@ -901,6 +909,10 @@ def generate_static_dashboard(output_path: Path = None) -> Path:
     html = html.replace("__CNT_IMOBILIARE__", str(by_portal.get('imobiliare', 0)))
     html = html.replace("__CNT_PUBLI24__", str(by_portal.get('publi24', 0)))
     html = html.replace("__CNT_ANUNTUL__", str(by_portal.get('anuntul', 0)))
+    html = html.replace("__CNT_HOMEZZ__", str(by_portal.get('homezz', 0)))
+    html = html.replace("__CNT_LAJUMATE__", str(by_portal.get('lajumate', 0)))
+    html = html.replace("__CNT_ROMIMO__", str(by_portal.get('romimo', 0)))
+    html = html.replace("__CNT_IMORADAR__", str(by_portal.get('imoradar', 0)))
     html = html.replace("__JSON_DATA__", json.dumps(listings_data, default=str, ensure_ascii=False))
 
     output_path.write_text(html, encoding="utf-8")
