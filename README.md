@@ -1,8 +1,8 @@
 # 🏢 Platformă Monitorizare & Alerte Imobiliare Sector 6 (București)
 
-Platformă automată dedicată căutării, filtrării stricte și notificării zilnice pentru anunțuri noi de **apartamente cu 2 camere**, în **Sectorul 6, București**, cu an de construcție **după 1977** (`> 1977`, minim 1978 sau blocuri noi).
+Platformă automată dedicată căutării, filtrării stricte și notificării zilnice pentru anunțuri noi și reduceri de preț la **apartamente cu 2 camere**, în **Sectorul 6, București** *(fără Militari Residence / Chiajna)*, cu an de construcție **după 1977** (`> 1977`, minim 1978 sau blocuri noi).
 
-Agregă în timp real anunțuri de pe cele mai mari 9 portaluri imobiliare din România:
+Agregă în timp real anunțuri de pe cele mai importante **9 portaluri imobiliare** din România:
 - 🟢 **OLX.ro**
 - 🟠 **Storia.ro**
 - 🔴 **Imobiliare.ro**
@@ -20,15 +20,22 @@ Agregă în timp real anunțuri de pe cele mai mari 9 portaluri imobiliare din R
 Platforma este găzduită online 100% gratuit și disponibilă permanent la:
 👉 **[https://robertvatasoiu.github.io/searcholxanunturi/](https://robertvatasoiu.github.io/searcholxanunturi/)**
 
-* **Optimizat pentru telefon:** Antetul face scroll natural odată cu pagina și nu blochează ecranul.
-* **Filtrare dinamică:** Căutare rapidă după stradă/metrou, filtrare după cartier (*Drumul Taberei, Militari, Crângași, Politehnica, Grozăvești, Lujerului, Gorjului etc.*) și sortare după preț.
+* **Optimizată pentru mobil & desktop:** Încărcare ultra-rapidă (~2.1 MB), cu baza de date SQLite compactată automat (~5.5 MB).
+* **Deduplicare Cross-Portal:** Același apartament publicat simultan pe mai multe site-uri este grupat într-un singur card și afișează linkuri directe către toate sursele (`🔗 Și pe: OLX • Storia • HomeZZ`).
+* **Monitorizare Scăderi de Preț (Price Drop):** Urmărește evoluția prețului fiecărui anunț, afișează prețul vechi tăiat + badge cu reducerea (`↓ -5.000 EUR`) și re-alertează automat când proprietarul scade prețul.
+* **Filtre Rapide (Quick Chips) & Sortări Avansate:**
+  * `📉 Preț Scăzut` — doar apartamentele cu reducere de preț
+  * `🚫 Fără Parter / Ultimul Etaj` — exclude automat parterul, demisolul, mansarda și ultimul etaj (`4/4`, `8/8`, `10/10`)
+  * `👤 Direct Proprietar / 0% Comision` — filtrează anunțurile de la proprietari sau cu comision 0%
+  * `⭐ Favorite` & `👁️ Ascunse` — salvează anunțurile favorite sau ascunde definitiv ofertele neinteresante direct în browser (`localStorage`)
+  * Sortare după: *Cele mai noi*, *Preț crescător/descrescător*, *Preț/mp crescător (€/mp)*, *Cele mai mari reduceri* și *An construcție*.
 
 ---
 
 ## ⚡ Căutare la Cerere Direct de pe Telefon (Laptop Oprit)
 
 Pe platforma online găsești butonul **„⚡ Caută Acum în Cloud”**. 
-Când apeși pe el de pe telefon sau calculator, acesta pornește instant mașina virtuală din **GitHub Actions**, scanează toate cele 5 portaluri, trimite notificarea și actualizează platforma în aproximativ 30-45 de secunde!
+Când apeși pe el de pe telefon sau calculator, acesta pornește instant mașina virtuală din **GitHub Actions**, scanează toate cele **9 portaluri**, trimite notificarea și actualizează platforma în aproximativ 45–60 de secunde!
 
 ### 🔑 Configurare Token (O singură dată per telefon/dispozitiv):
 Pentru ca telefonul tău să aibă permisiunea de a comanda serverul GitHub:
@@ -40,18 +47,25 @@ Pentru ca telefonul tău să aibă permisiunea de a comanda serverul GitHub:
 
 ---
 
-## 🔍 Filtrare Avansată a Anului de Construcție (>1977)
+## 🔍 Filtrare Strictă: An (>1977), Locație (Fără Militari Residence) & Tranzacție
 
-Platforma include un modul dedicat de validare ([backend/year_filter.py](backend/year_filter.py)) care elimină erorile și trucurile de marketing ale agențiilor imobiliare:
-* **Prioritate pentru anul de construcție al blocului:** Dacă un vânzător pune în titlu *„Apartament renovat 2026”*, dar în text scrie *„bloc construit în 1972”*, sistemul identifică anul real al structurii și **respinge automat anunțul**.
-* **Detecție extinsă pre-1978:** Caută sintagme precum *„bloc '68”*, *„construit în 1974”*, *„înainte de 1977”*, *„bloc rusesc”*, *„pre-1977”*.
-* **Verificare completă:** Analizează titlul, descrierea integrală, parametrii tehnici și etichetele portalului.
+Platforma include 3 motoare dedicate de validare și îmbogățire a datelor:
+
+1. **Validarea Anului de Construcție (>1977) — [`backend/year_filter.py`](backend/year_filter.py):**
+   * **Prioritate pentru anul de construcție al blocului:** Dacă un vânzător pune în titlu *„Apartament renovat 2026”*, dar în text scrie *„bloc construit în 1972”*, sistemul identifică anul real al structurii și **respinge automat anunțul**.
+   * **Detecție extinsă pre-1978:** Caută sintagme precum *„bloc '68”*, *„construit în 1974”*, *„înainte de 1977”*, *„bloc rusesc”*, *„pre-1977”*.
+2. **Filtrare Geografică & Detecție Cartier — [`backend/location_filter.py`](backend/location_filter.py):**
+   * **Excludere Militari Residence / Chiajna / Roșu:** Respinge automat anunțurile din *Militari Residence, Chiajna, Roșu, Dudu, Str. Rezervelor, Str. Weiner Palada, Str. Tineretului, Str. Sg. Ilie Petre* (cu suport pentru negații precum *„a nu se confunda cu Militari Residence”*).
+   * **Excludere alte sectoare:** Elimină anunțurile promovate din *Sector 1–5, Pallady, Titan, Berceni, Rahova, Pipera, Aviației, Bragadiru, Popești-Leordeni*.
+   * **Detecție automată a sub-zonei din Sectorul 6:** Clasifică automat anunțurile pe cartierele reale (*Drumul Taberei, Lujerului, Gorjului, Crângași, Politehnica, Grozăvești, Ghencea, Militari*) și normalizează etajul (*Parter, Etaj 3/8, Mansardă*).
+3. **Filtrare Vânzări & 2 Camere — [`backend/transaction_filter.py`](backend/transaction_filter.py):**
+   * Exclude închirierile, prețurile invalide și anunțurile cu 3/4 camere listate eronat în categoria de 2 camere.
 
 ---
 
 ## ✉️ Alerte Zilnice Inteligente (Ora 08:00 AM)
 
-* **Email Compact & Rapid:** Trimite un email curat cu **Top 12 cele mai noi anunțuri** ale dimineții (pentru a se încărca instant și a nu fi trunchiat de Gmail) și un buton mare:
+* **Email Compact & Rapid:** Trimite un email curat cu **Top 12 cele mai relevante anunțuri noi sau ieftinite** ale dimineții (pentru a se încărca instant și a nu fi trunchiat de Gmail) și un buton mare:
   👉 **„🌐 Deschide Platforma Online (Vezi Toate Anunțurile) →”**
 * **Opțiuni de Trimitere fără Cont Personal:**
   1. **Resend API (Recomandat):** Trimite de la o adresă de sistem (`onboarding@resend.dev`) fără a expune parola sau adresa ta personală.
@@ -62,13 +76,14 @@ Platforma include un modul dedicat de validare ([backend/year_filter.py](backend
 
 ## ☁️ Automatizare 24/7 în GitHub Actions
 
-Workflow-ul [.github/workflows/daily_scan.yml](.github/workflows/daily_scan.yml) rulează complet autonom în cloud:
+Workflow-ul [`.github/workflows/daily_scan.yml`](.github/workflows/daily_scan.yml) rulează complet autonom în cloud:
 1. **La ora 08:00 AM (ora României)** pornește automat serverul GitHub.
 2. Descarcă baza de date `data/listings.db` salvată în repository.
-3. Rulează scrapers-urile pe cele 5 portaluri și compară cu anunțurile existente (pentru a nu trimite duplicate).
-4. Trimite notificarea pe Email / Telegram.
-5. Regenerează pagina web `docs/index.html` și o publică pe **GitHub Pages**.
-6. Salvează baza de date actualizată direct în repozitoriu printr-un commit automat.
+3. Rulează scrapers-urile pe toate cele **9 portaluri**, aplică filtrele stricte și detectează anunțurile noi sau scăderile de preț.
+4. Compactează și îmbogățește baza de date (`VACUUM`).
+5. Trimite notificarea pe Email / Telegram.
+6. Regenerează pagina web `docs/index.html` și o publică pe **GitHub Pages**.
+7. Salvează baza de date actualizată direct în repozitoriu printr-un commit automat.
 
 ### Secrete GitHub Necesare (Settings -> Secrets and variables -> Actions):
 * `RESEND_API_KEY`: Cheia gratuită de pe [resend.com](https://resend.com).
@@ -102,35 +117,41 @@ pip install -r requirements.txt
 ```
 olx_cautare/
 ├── .github/workflows/
-│   └── daily_scan.yml         # Automatizare GitHub Actions zilnic la ora 08:00
+│   └── daily_scan.yml            # Automatizare GitHub Actions zilnic la ora 08:00
 ├── backend/
-│   ├── cloud_runner.py        # Executabil pentru mediul cloud / GitHub Actions
-│   ├── config.py              # Management setări (SMTP, Resend, Telegram, Căutare)
-│   ├── database.py            # SQLite listings.db & deduplicare anunțuri
-│   ├── email_service.py       # Generator email HTML compact & trimitere Resend/SMTP/Telegram
-│   ├── export_static.py       # Generator platformă web statică pentru GitHub Pages
-│   ├── manager.py             # Coordonator multi-portal & poartă de filtrare an
-│   ├── scheduler.py           # APScheduler pentru rulare automată locală
-│   ├── year_filter.py         # Motor de validare strictă a anului de construcție (>1977)
+│   ├── cloud_runner.py           # Executabil pentru mediul cloud / GitHub Actions
+│   ├── config.py                 # Management setări (SMTP, Resend, Telegram, Căutare)
+│   ├── database.py               # SQLite listings.db, istoric prețuri & compactare VACUUM
+│   ├── email_service.py          # Generator email HTML compact & trimitere Resend/SMTP/Telegram
+│   ├── export_static.py          # Generator platformă web statică & deduplicare cross-portal
+│   ├── location_filter.py        # Excludere Militari Residence/alte sectoare & detecție cartier/etaj
+│   ├── manager.py                # Coordonator multi-portal (9 site-uri) & poartă de filtrare
+│   ├── scheduler.py              # APScheduler pentru rulare automată locală
+│   ├── transaction_filter.py     # Validare prețuri, excludere chirii și validare 2 camere
+│   ├── year_filter.py            # Motor de validare strictă a anului de construcție (>1977)
 │   └── scrapers/
-│       ├── base.py            # Model unificat Listing
-│       ├── olx_scraper.py     # Scraper OLX.ro
-│       ├── storia_scraper.py  # Scraper Storia.ro
+│       ├── base.py               # Model unificat Listing
+│       ├── olx_scraper.py        # Scraper OLX.ro
+│       ├── storia_scraper.py     # Scraper Storia.ro
 │       ├── imobiliare_scraper.py # Scraper Imobiliare.ro
-│       ├── publi24_scraper.py # Scraper Publi24.ro
-│       └── anuntul_scraper.py # Scraper Anunțul.ro (Anunțul Telefonic)
+│       ├── publi24_scraper.py    # Scraper Publi24.ro
+│       ├── anuntul_scraper.py    # Scraper Anunțul.ro (Anunțul Telefonic)
+│       ├── homezz_scraper.py     # Scraper HomeZZ.ro
+│       ├── lajumate_scraper.py   # Scraper LaJumate.ro
+│       ├── romimo_scraper.py     # Scraper Romimo.ro
+│       └── imoradar_scraper.py   # Scraper Imoradar24.ro
 ├── docs/
-│   └── index.html             # Platforma live găzduită pe GitHub Pages
+│   └── index.html                # Platforma live găzduită pe GitHub Pages
 ├── web/
-│   ├── server.py              # Server FastAPI local cu REST API
-│   ├── static/css/style.css   # Stiluri moderne Dark Mode & Mobile Responsive
-│   ├── static/js/app.js       # Interfață dinamică panou local
+│   ├── server.py                 # Server FastAPI local cu REST API
+│   ├── static/css/style.css      # Stiluri moderne Dark Mode & Mobile Responsive
+│   ├── static/js/app.js          # Interfață dinamică panou local
 │   └── templates/
-│       ├── index.html         # Șablon dashboard local
-│       └── email_template.html# Șablon email alerte
-├── config.example.json        # Șablon configurație fără date secrete
-├── run_daily.sh               # Script rulare zilnică locală
-├── start_dashboard.sh         # Script pornire dashboard local
-├── requirements.txt           # Dependențe Python
-└── README.md                  # Documentație completă
+│       ├── index.html            # Șablon dashboard local
+│       └── email_template.html   # Șablon email alerte
+├── config.example.json           # Șablon configurație fără date secrete
+├── run_daily.sh                  # Script rulare zilnică locală
+├── start_dashboard.sh            # Script pornire dashboard local
+├── requirements.txt              # Dependențe Python
+└── README.md                     # Documentație completă
 ```
