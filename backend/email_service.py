@@ -49,9 +49,13 @@ class NotificationService:
         ]
         for idx, item in enumerate(listings[:12], 1):
             price_str = f"{int(item.price)} {item.currency}" if item.price else "Preț nespecificat"
+            if item.previous_price and item.price and item.previous_price > item.price:
+                drop = int(item.previous_price - item.price)
+                price_str += f" (REDUS cu -{drop} {item.currency} de la {int(item.previous_price)} {item.currency})"
             year_str = f"An: {item.year}" if item.year else "Bloc după 1977"
+            floor_str = f" | {item.floor}" if item.floor else ""
             lines.append(f"{idx}. [{item.portal.upper()}] {item.title}")
-            lines.append(f"   Preț: {price_str} | Cartier: {item.neighborhood or 'Sector 6'} | {year_str}")
+            lines.append(f"   Preț: {price_str} | Cartier: {item.neighborhood or 'Sector 6'}{floor_str} | {year_str}")
             lines.append(f"   Link: {item.url}")
             lines.append("")
         if len(listings) > 12:
@@ -184,12 +188,16 @@ class NotificationService:
         # Send top 10 individual items or in batches
         for idx, it in enumerate(listings[:15], 1):
             price_str = f"<b>{int(it.price):,} EUR</b>".replace(",", ".") if it.price else "Preț la cerere"
+            if it.previous_price and it.price and it.previous_price > it.price:
+                drop = int(it.previous_price - it.price)
+                price_str += f" (📉 -{drop:,} EUR)".replace(",", ".")
             year_str = f"An {it.year}" if it.year else "Bloc &gt; 1977"
             surf_str = f" | {it.surface_sqm} mp" if it.surface_sqm else ""
+            floor_str = f" | {it.floor}" if it.floor else ""
             
             card_msg = (
                 f"{idx}. <b>[{it.portal.upper()}]</b> <a href=\"{it.url}\">{it.title}</a>\n"
-                f"💰 {price_str} | 📍 {it.neighborhood or 'Sector 6'} | 🏗️ {year_str}{surf_str}\n"
+                f"💰 {price_str} | 📍 {it.neighborhood or 'Sector 6'}{floor_str} | 🏗️ {year_str}{surf_str}\n"
                 f"🔗 <a href=\"{it.url}\">Deschide Anunțul pe {it.portal.upper()} &rarr;</a>\n\n"
             )
             

@@ -1,5 +1,5 @@
 import re
-from typing import Tuple
+from typing import Tuple, Optional
 
 EXCLUDED_NEIGHBORHOODS = {
     "chiajna",
@@ -27,6 +27,91 @@ EXCLUDED_LOCATION_PATTERNS = [
     (r"\bstr(?:ada)?\.?\s*(?:sg\.?|sergent)\s*ilie\s*petre\b", "Str. Sg. Ilie Petre (Chiajna)"),
 ]
 
+# Ordered from specific sub-zones to broader Sector 6 neighborhoods
+NEIGHBORHOOD_RULES = [
+    (
+        "Drumul Taberei",
+        re.compile(
+            r"\b(?:drumul\s+taberei|dr\.?\s*taberei|favorit|r[aâ]ul\s+doamnei|romancierilor|"
+            r"moghioro[sș]|valea\s+ialomi[tț]ei|constantin\s+br[aâ]ncu[sș]i|parc(?:ul)?\s+br[aâ]ncu[sș]i|"
+            r"tricodava|chilia\s+veche|poiana\s+muntelui|cetatea\s+histria|t[aâ]rgu\s+neam[tț]|"
+            r"valea\s+arge[sș]ului|bd\.?\s*timi[sș]oara\s*(?:nr\.?\s*)?(?:2\d|3\d|4\d|5\d)|"
+            r"plaza\s+rom[aâ]nia|mall\s+plaza|str(?:ada)?\.?\s*(?:bra[sș]ov|sibiu))\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "Lujerului",
+        re.compile(
+            r"\b(?:lujerului|pasaj(?:ul)?\s+lujerului|cora\s+lujerului|carrefour\s+lujerului|"
+            r"[sș]os(?:eaua)?\.?\s*virtu[tț]ii|virtu[tț]ii|or[sș]ova|exigent\s+plaza|21\s+residence)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "Gorjului",
+        re.compile(
+            r"\b(?:gorjului|pia[tț]a\s+gorjului|metrou\s+gorjului|moine[sș]ti|"
+            r"cetatea\s+de\s+balt[aă]|dezrobirii|cerni[sș]oara)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "Crângași",
+        re.compile(
+            r"\b(?:cr[aâ]nga[sș]i|metrou\s+cr[aâ]nga[sș]i|lacul\s+morii|ceahl[aă]u|"
+            r"constructorilor|9\s+mai|george\s+v[aâ]lsan)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "Politehnica",
+        re.compile(
+            r"\b(?:politehnic[aă]|politehnicii|afi\s+cotroceni|afi\s+palace|"
+            r"bd\.?\s*vasile\s+milea|general\s+paul\s+teodorescu)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "Grozăvești",
+        re.compile(
+            r"\b(?:groz[aă]ve[sș]ti|regie|orhideea|carrefour\s+orhideea|"
+            r"economu\s+cezarescu|oncos|pod(?:ul)?\s+groz[aă]ve[sș]ti)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "Ghencea",
+        re.compile(
+            r"\b(?:ghencea|prelungirea\s+ghencea|valea\s+oltului|stadion(?:ul)?\s+steaua)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "Militari",
+        re.compile(
+            r"\b(?:militari|p[aă]cii|metrou\s+p[aă]cii|preciziei|metrou\s+preciziei|"
+            r"apusului|uverturii|veteranilor|iuliu\s+maniu|rotar\s+park|valea\s+cascadelor|"
+            r"valea\s+lung[aă]|drumul\s+osiei|autogar[aă]\s+militari)\b",
+            re.IGNORECASE,
+        ),
+    ),
+]
+
+CANONICAL_NEIGHBORHOOD_MAP = {
+    "drumul taberei": "Drumul Taberei",
+    "militari": "Militari",
+    "crangasi": "Crângași",
+    "crângași": "Crângași",
+    "grozavesti": "Grozăvești",
+    "grozăvești": "Grozăvești",
+    "politehnica": "Politehnica",
+    "ghencea": "Ghencea",
+    "valea oltului": "Ghencea",
+    "lujerului": "Lujerului",
+    "gorjului": "Gorjului",
+}
+
 
 def is_excluded_location(
     title: str = "",
@@ -51,3 +136,143 @@ def is_excluded_location(
             return True, f"Zonă exclusă ({label})"
 
     return False, "Zonă validă Sector 6"
+
+
+def detect_neighborhood(
+    title: str = "",
+    description: str = "",
+    current_neighborhood: Optional[str] = None,
+) -> str:
+    """
+    Detects or normalizes the specific Sector 6 neighborhood from title & description,
+    especially for portals like OLX/Storia where district defaults to 'Sectorul 6' or 'Militari'.
+    """
+    cur = (current_neighborhood or "").strip()
+    cur_lower = cur.lower()
+
+    # Check title first (strongest signal for specific sub-zones like Lujerului, Gorjului, Drumul Taberei)
+    for canonical, regex in NEIGHBORHOOD_RULES:
+        if regex.search(title or ""):
+            return canonical
+
+    # If current neighborhood is already a specific canonical neighborhood (not generic Sector 6 / Militari), keep it
+    if cur_lower in CANONICAL_NEIGHBORHOOD_MAP and cur_lower != "militari":
+        return CANONICAL_NEIGHBORHOOD_MAP[cur_lower]
+
+    # Check description for specific neighborhoods
+    cleaned_desc = NEGATION_PATTERN.sub(" ", description or "")
+    for canonical, regex in NEIGHBORHOOD_RULES:
+        if regex.search(cleaned_desc):
+            return canonical
+
+    if cur_lower in CANONICAL_NEIGHBORHOOD_MAP:
+        return CANONICAL_NEIGHBORHOOD_MAP[cur_lower]
+
+    return "Sector 6"
+
+
+def normalize_floor(
+    floor_raw: Optional[str] = None,
+    title: str = "",
+    description: str = "",
+) -> Optional[str]:
+    """
+    Normalizes floor strings across portals ('floor_3', 'parter', '3 / 8') or extracts from text.
+    """
+    raw = (floor_raw or "").strip()
+    raw_lower = raw.lower()
+
+    if raw_lower in {"parter", "ground_floor", "p"}:
+        return "Parter"
+    if raw_lower in {"demisol", "cellar", "subsol", "d"}:
+        return "Demisol"
+    if raw_lower in {"mansarda", "mansardă", "attic", "m", "pod"}:
+        return "Mansardă"
+
+    m_storia = re.match(r"^floor_(\d+)$", raw_lower)
+    if m_storia:
+        return f"Etaj {m_storia.group(1)}"
+    if raw_lower == "floor_higher_10":
+        return "Etaj 10+"
+
+    m_num = re.match(r"^(?:etaj(?:ul)?|et\.?)?\s*(\d{1,2})(?:\s*(?:/|din)\s*(\d{1,2}))?$", raw_lower)
+    if m_num:
+        fl, tot = m_num.group(1), m_num.group(2)
+        if fl == "0":
+            return "Parter"
+        return f"Etaj {fl}/{tot}" if tot else f"Etaj {fl}"
+
+    # Extract from title + description if raw was empty or uninformative
+    text = f"{title or ''} {description or ''}"
+    m_frac = re.search(
+        r"\b(?:etaj(?:ul)?|et\.?)\s*(\d{1,2})\s*(?:/|din)\s*(\d{1,2})\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_frac:
+        fl, tot = m_frac.group(1), m_frac.group(2)
+        return "Parter" if fl == "0" else f"Etaj {fl}/{tot}"
+
+    m_single = re.search(r"\b(?:etaj(?:ul)?|et\.?)\s*(\d{1,2})\b", text, re.IGNORECASE)
+    if m_single:
+        fl = m_single.group(1)
+        return "Parter" if fl == "0" else f"Etaj {fl}"
+
+    if re.search(r"\b(?:la\s+parter|parter\s+[iî]nalt|etaj\s+parter)\b", text, re.IGNORECASE):
+        return "Parter"
+    if re.search(r"\b(?:mansard[aă]|demisol)\b", text, re.IGNORECASE):
+        return "Mansardă" if "mansard" in text.lower() else "Demisol"
+
+    if raw and len(raw) <= 15:
+        return raw
+    return None
+
+
+def is_ground_or_top_floor(
+    floor_norm: Optional[str] = None,
+    title: str = "",
+    description: str = "",
+) -> bool:
+    """
+    Returns True if the listing is on ground floor (Parter/Demisol), attic (Mansardă),
+    or top floor (e.g. Etaj 4/4, 8/8, 10/10, ultimul etaj).
+    """
+    fl = (floor_norm or "").strip().lower()
+    if any(k in fl for k in ("parter", "demisol", "mansard", "subsol")):
+        return True
+
+    m_frac = re.search(r"(\d{1,2})\s*/\s*(\d{1,2})", fl)
+    if m_frac and m_frac.group(1) == m_frac.group(2):
+        return True
+
+    text = f"{title or ''} {description or ''}"
+    m_text_frac = re.search(
+        r"\b(?:etaj(?:ul)?|et\.?)?\s*(\d{1,2})\s*(?:/|din)\s*(\d{1,2})\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_text_frac and m_text_frac.group(1) == m_text_frac.group(2) and int(m_text_frac.group(2)) <= 15:
+        return True
+
+    if re.search(r"\b(?:ultimul\s+etaj|la\s+parter|parter\s+[iî]nalt|demisol|mansard[aă])\b", text, re.IGNORECASE):
+        return True
+
+    return False
+
+
+def is_direct_owner_or_zero_commission(title: str = "", description: str = "") -> bool:
+    """
+    Returns True if the listing indicates Direct Owner (Proprietar/Particular) or 0% Commission.
+    """
+    text = f"{title or ''} {description or ''}"
+    if re.search(r"\b(?:f[aă]r[aă]\s+agen[tț]ii|exclus\s+agen[tț]ii)\b", text, re.IGNORECASE):
+        return True
+    if re.search(
+        r"\b(?:direct\s+proprietar|proprietar\s+v[aâ]nd|proprietar\s+ofer|particular|comision\s*0\s*%?|0\s*%\s*comision|f[aă]r[aă]\s+comision|direct\s+dezvoltator)\b",
+        text,
+        re.IGNORECASE,
+    ):
+        return True
+    if re.search(r"\bproprietar\b", title or "", re.IGNORECASE):
+        return True
+    return False

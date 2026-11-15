@@ -223,6 +223,11 @@
               <div class="price">
                 {% if item.price %}
                   {{ "{:,.0f}".format(item.price).replace(",", ".") }} {{ item.currency }}
+                  {% if item.previous_price and item.previous_price > item.price %}
+                    <span style="font-size: 12px; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 6px; border-radius: 4px; margin-left: 6px;">
+                      ↓ -{{ "{:,.0f}".format(item.previous_price - item.price).replace(",", ".") }} {{ item.currency }}
+                    </span>
+                  {% endif %}
                 {% else %}
                   Preț la cerere
                 {% endif %}
@@ -232,6 +237,9 @@
             <div class="pills">
               <span class="pill">📍 {{ item.neighborhood or "Sector 6" }}</span>
               <span class="pill">🚪 2 Camere</span>
+              {% if item.floor %}
+                <span class="pill">🏢 {{ item.floor }}</span>
+              {% endif %}
               {% if item.year %}
                 <span class="pill">🏗️ An {{ item.year }}</span>
               {% else %}

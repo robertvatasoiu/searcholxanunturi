@@ -42,6 +42,7 @@ def run_cloud_job():
     purged = database.purge_excluded_listings()
     if purged:
         logger.info(f"Purged {purged} excluded listings from database.")
+    database.compact_and_enrich_database(vacuum=True)
 
     # 2. Generate updated static dashboard for GitHub Pages
     try:

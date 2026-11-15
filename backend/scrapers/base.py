@@ -9,6 +9,9 @@ class Listing(BaseModel):
     portal: str  # olx, storia, imobiliare, publi24, anuntul
     title: str
     price: Optional[float] = None
+    initial_price: Optional[float] = None
+    previous_price: Optional[float] = None
+    price_changed_at: Optional[str] = None
     currency: str = "EUR"
     surface_sqm: Optional[float] = None
     rooms: int = 2

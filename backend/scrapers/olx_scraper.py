@@ -207,8 +207,11 @@ class OLXScraper(BaseScraper):
         floor = param_map.get("floor")
 
         # Location
+        from backend.location_filter import detect_neighborhood, normalize_floor
         loc = ad.get("location", {}) if isinstance(ad.get("location"), dict) else {}
-        district = loc.get("districtName") or loc.get("cityName") or "Sector 6"
+        raw_district = loc.get("districtName") or loc.get("cityName") or "Sector 6"
+        district = detect_neighborhood(title, ad.get("description", ""), raw_district)
+        floor_norm = normalize_floor(str(floor) if floor else None, title, ad.get("description", ""))
         city = loc.get("cityName") or "Bucuresti"
 
         # Photos
@@ -237,16 +240,16 @@ class OLXScraper(BaseScraper):
             surface_sqm=surface_val,
             rooms=rooms,
             year=year_num,
-            floor=str(floor) if floor else None,
+            floor=floor_norm,
             neighborhood=district,
             city=city,
             sector="Sector 6",
             description=ad.get("description"),
             url=url,
             thumbnail=thumbnail,
-            images=photos,
+            images=photos[:1],
             date_published=created_time,
-            raw_data=ad
+            raw_data=None
         )
 
     def _parse_price_text(self, text: str):

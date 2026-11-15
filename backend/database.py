@@ -71,6 +71,16 @@ def init_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_listings_discovered ON listings (date_discovered DESC)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_listings_price ON listings (price)")
 
+    # Safe column migrations for price drop tracking
+    cursor.execute("PRAGMA table_info(listings)")
+    existing_cols = {row[1] for row in cursor.fetchall()}
+    if "initial_price" not in existing_cols:
+        cursor.execute("ALTER TABLE listings ADD COLUMN initial_price REAL")
+    if "previous_price" not in existing_cols:
+        cursor.execute("ALTER TABLE listings ADD COLUMN previous_price REAL")
+    if "price_changed_at" not in existing_cols:
+        cursor.execute("ALTER TABLE listings ADD COLUMN price_changed_at TIMESTAMP")
+
     conn.commit()
     conn.close()
 
@@ -82,28 +92,39 @@ def save_listings(listings: List[Listing]) -> Tuple[int, List[Listing]]:
     if not listings:
         return 0, []
 
+    from backend.location_filter import detect_neighborhood, normalize_floor
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
     new_listings: List[Listing] = []
 
     for item in listings:
+        item.neighborhood = detect_neighborhood(item.title, item.description or "", item.neighborhood)
+        item.floor = normalize_floor(item.floor, item.title, item.description or "")
+
         # Check if already exists by id or url
-        cursor.execute("SELECT id, is_alerted FROM listings WHERE id = ? OR url = ?", (item.id, item.url))
+        cursor.execute(
+            "SELECT id, price, initial_price, previous_price, price_changed_at, is_alerted FROM listings WHERE id = ? OR url = ?",
+            (item.id, item.url)
+        )
         row = cursor.fetchone()
 
         if row is None:
-            # Brand new listing
+            item.initial_price = item.price
+            # Brand new listing (do not store bulky raw_json)
             cursor.execute("""
             INSERT INTO listings (
-                id, portal, title, price, currency, surface_sqm, rooms, year,
+                id, portal, title, price, initial_price, previous_price, price_changed_at,
+                currency, surface_sqm, rooms, year,
                 floor, neighborhood, city, sector, description, url, thumbnail,
                 images_json, date_published, date_discovered, is_alerted, raw_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+            ) VALUES (?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL)
             """, (
                 item.id,
                 item.portal,
                 item.title,
+                item.price,
                 item.price,
                 item.currency,
                 item.surface_sqm,
@@ -116,28 +137,56 @@ def save_listings(listings: List[Listing]) -> Tuple[int, List[Listing]]:
                 item.description,
                 item.url,
                 item.thumbnail,
-                json.dumps(item.images),
+                json.dumps(item.images[:1]) if item.images else "[]",
                 item.date_published,
                 item.date_discovered.isoformat(),
-                json.dumps(item.raw_data) if item.raw_data else None
             ))
             new_listings.append(item)
         else:
-            # Update price or other attributes if changed, but keep is_alerted status
+            old_price = row["price"]
+            old_initial = row["initial_price"] if row["initial_price"] is not None else old_price
+            old_prev = row["previous_price"]
+            old_changed_at = row["price_changed_at"]
+            old_alerted = row["is_alerted"]
+
+            # Detect meaningful price drop (>= 50 EUR)
+            if item.price is not None and old_price is not None and item.price < old_price - 50:
+                new_prev = old_price
+                new_changed_at = datetime.utcnow().isoformat()
+                new_alerted = 0
+                item.previous_price = old_price
+                item.initial_price = old_initial
+                item.price_changed_at = new_changed_at
+                new_listings.append(item)
+            else:
+                new_prev = old_prev
+                new_changed_at = old_changed_at
+                new_alerted = old_alerted
+
             cursor.execute("""
             UPDATE listings SET
                 title = ?,
-                price = ?,
+                price = COALESCE(?, price),
+                initial_price = COALESCE(?, initial_price),
+                previous_price = ?,
+                price_changed_at = ?,
+                is_alerted = ?,
                 thumbnail = COALESCE(?, thumbnail),
                 year = COALESCE(?, year),
+                floor = COALESCE(?, floor),
                 neighborhood = COALESCE(?, neighborhood),
                 description = COALESCE(?, description)
             WHERE id = ?
             """, (
                 item.title,
                 item.price,
+                old_initial,
+                new_prev,
+                new_changed_at,
+                new_alerted,
                 item.thumbnail,
                 item.year,
+                item.floor,
                 item.neighborhood,
                 item.description,
                 row["id"]
@@ -211,6 +260,76 @@ def purge_excluded_listings() -> int:
 
     conn.close()
     return len(ids_to_delete)
+
+
+def compact_and_enrich_database(vacuum: bool = True) -> Dict[str, int]:
+    """
+    1. Enriches neighborhood and normalizes floor for existing rows.
+    2. Backfills initial_price where NULL.
+    3. Clears bulky raw_json and trims images_json to 1 thumbnail.
+    4. Runs VACUUM to shrink the SQLite database file size.
+    """
+    from backend.location_filter import detect_neighborhood, normalize_floor
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, title, description, neighborhood, floor, price, initial_price, images_json, raw_json FROM listings")
+    rows = cursor.fetchall()
+
+    updates = []
+    enriched_nb = 0
+    enriched_fl = 0
+    cleared_raw = 0
+
+    for r in rows:
+        new_nb = detect_neighborhood(r["title"] or "", r["description"] or "", r["neighborhood"])
+        new_fl = normalize_floor(r["floor"], r["title"] or "", r["description"] or "")
+        init_pr = r["initial_price"] if r["initial_price"] is not None else r["price"]
+
+        imgs = "[]"
+        if r["images_json"]:
+            try:
+                parsed = json.loads(r["images_json"])
+                if isinstance(parsed, list) and parsed:
+                    imgs = json.dumps(parsed[:1])
+            except Exception:
+                pass
+
+        if new_nb != r["neighborhood"]:
+            enriched_nb += 1
+        if new_fl != r["floor"]:
+            enriched_fl += 1
+        if r["raw_json"] is not None:
+            cleared_raw += 1
+
+        updates.append((new_nb, new_fl, init_pr, imgs, r["id"]))
+
+    if updates:
+        cursor.executemany(
+            """
+            UPDATE listings
+            SET neighborhood = ?,
+                floor = ?,
+                initial_price = ?,
+                images_json = ?,
+                raw_json = NULL
+            WHERE id = ?
+            """,
+            updates,
+        )
+        conn.commit()
+
+    if vacuum:
+        conn.isolation_level = None
+        cursor.execute("VACUUM")
+
+    conn.close()
+    return {
+        "enriched_neighborhoods": enriched_nb,
+        "enriched_floors": enriched_fl,
+        "cleared_raw_json": cleared_raw,
+    }
 
 def get_all_listings(
     portal: Optional[str] = None,
@@ -350,11 +469,15 @@ def _row_to_listing(row: sqlite3.Row) -> Listing:
 
     date_disc = datetime.fromisoformat(row["date_discovered"]) if row["date_discovered"] else datetime.utcnow()
 
+    keys = row.keys()
     return Listing(
         id=row["id"],
         portal=row["portal"],
         title=row["title"],
         price=row["price"],
+        initial_price=row["initial_price"] if "initial_price" in keys else row["price"],
+        previous_price=row["previous_price"] if "previous_price" in keys else None,
+        price_changed_at=row["price_changed_at"] if "price_changed_at" in keys else None,
         currency=row["currency"] or "EUR",
         surface_sqm=row["surface_sqm"],
         rooms=row["rooms"] or 2,

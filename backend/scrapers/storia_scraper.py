@@ -177,6 +177,11 @@ class StoriaScraper(BaseScraper):
         # Floor
         floor = it.get("floor")
 
+        # Floor & Neighborhood normalization
+        from backend.location_filter import detect_neighborhood, normalize_floor
+        floor_norm = normalize_floor(str(floor) if floor is not None else None, title, "")
+        neighborhood_norm = detect_neighborhood(title, "", district_name or "Sector 6")
+
         # Date
         created = it.get("dateCreated") or it.get("dateCreatedFirst")
 
@@ -188,15 +193,15 @@ class StoriaScraper(BaseScraper):
             currency=currency,
             surface_sqm=float(surface) if surface is not None else None,
             rooms=rooms,
-            year=build_year,
-            floor=str(floor) if floor is not None else None,
-            neighborhood=district_name or "Sector 6",
+            year=final_year,
+            floor=floor_norm,
+            neighborhood=neighborhood_norm,
             city="Bucuresti",
             sector="Sector 6",
             description=None,
             url=url,
             thumbnail=thumbnail,
-            images=photos,
+            images=photos[:1],
             date_published=created,
-            raw_data=it
+            raw_data=None
         )

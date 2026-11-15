@@ -1,8 +1,10 @@
+import re
 import json
 from pathlib import Path
 from datetime import datetime
 from backend.config import BASE_DIR
 from backend import database
+from backend.location_filter import is_ground_or_top_floor, is_direct_owner_or_zero_commission
 
 STATIC_TEMPLATE = """<!DOCTYPE html>
 <html lang="ro">
@@ -165,6 +167,9 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
             <option value="newest">Cele mai noi</option>
             <option value="price_asc">Preț crescător</option>
             <option value="price_desc">Preț descrescător</option>
+            <option value="sqm_asc">Preț / mp crescător</option>
+            <option value="surface_desc">Suprafață descrescătoare</option>
+            <option value="price_drop">Scăderi de preț</option>
           </select>
         </div>
 
@@ -193,6 +198,20 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
           <button class="chip-btn" data-price="90000">&lt; 90k €</button>
           <button class="chip-btn" data-price="110000">&lt; 110k €</button>
           <button class="chip-btn" data-price="130000">&lt; 130k €</button>
+        </div>
+      </div>
+
+      <!-- Smart Quick Filter Chips -->
+      <div class="quick-pills-row" style="padding-top: 10px;">
+        <div class="pill-group" id="smartFilterPills">
+          <span class="pill-group-label">Filtre rapide:</span>
+          <button class="chip-btn" id="chipFav" onclick="toggleSmartFilter('fav')">⭐ Favorite (<span id="favCount">0</span>)</button>
+          <button class="chip-btn" id="chipRecent" onclick="toggleSmartFilter('recent')">🔥 Ultimele 48h</button>
+          <button class="chip-btn" id="chipDrop" onclick="toggleSmartFilter('drop')">📉 Preț redus</button>
+          <button class="chip-btn" id="chipOwner" onclick="toggleSmartFilter('owner')">👤 Proprietar / 0% Comision</button>
+          <button class="chip-btn" id="chipNoBadFloor" onclick="toggleSmartFilter('noBadFloor')">🚫 Fără Parter / Ultimul etaj</button>
+          <button class="chip-btn active" id="chipDedup" onclick="toggleSmartFilter('dedup')">🔗 Grupează duplicatele</button>
+          <button class="chip-btn" id="chipHidden" onclick="toggleSmartFilter('hidden')">👁️ Ascunse (<span id="hiddenCount">0</span>)</button>
         </div>
       </div>
     </div>
@@ -452,13 +471,34 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
       const inputMax = parseFloat(filterMaxPrice.value) || null;
       const maxPrice = inputMax || selectedMaxPrice;
       const sort = filterSort.value;
+      const favSet = getFavSet();
+      const hiddenSet = getHiddenSet();
+      const nowMs = Date.now();
+
+      updateSmartCounters(favSet, hiddenSet);
 
       let filtered = ALL_LISTINGS.filter(it => {
+        if (smartFilters.hidden) {
+          if (!hiddenSet.has(it.id)) return false;
+        } else {
+          if (hiddenSet.has(it.id)) return false;
+        }
+
+        if (smartFilters.fav && !favSet.has(it.id)) return false;
+        if (smartFilters.dedup && it.dup && !smartFilters.fav && !smartFilters.hidden) return false;
+        if (smartFilters.noBadFloor && it.bad_fl) return false;
+        if (smartFilters.owner && !it.owner) return false;
+        if (smartFilters.drop && !(it.previous_price && it.price && it.previous_price > it.price)) return false;
+        if (smartFilters.recent) {
+          const discMs = it.date_discovered ? new Date(it.date_discovered).getTime() : 0;
+          if (!discMs || (nowMs - discMs) > 48 * 3600 * 1000) return false;
+        }
+
         if (selectedPortal !== 'all' && it.portal.toLowerCase() !== selectedPortal) return false;
         if (neighborhood !== 'all' && !(it.neighborhood || '').toLowerCase().includes(neighborhood)) return false;
         if (maxPrice && it.price && it.price > maxPrice) return false;
         if (q) {
-          const hay = ((it.title || '') + ' ' + (it.neighborhood || '') + ' ' + (it.description || '')).toLowerCase();
+          const hay = ((it.title || '') + ' ' + (it.neighborhood || '') + ' ' + (it.floor || '') + ' ' + (it.desc_snippet || '')).toLowerCase();
           if (!hay.includes(q)) return false;
         }
         return true;
@@ -468,14 +508,105 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
         filtered.sort((a, b) => (a.price || 9999999) - (b.price || 9999999));
       } else if (sort === 'price_desc') {
         filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+      } else if (sort === 'sqm_asc') {
+        const getSqm = x => (x.price && x.surface_sqm && x.surface_sqm > 0) ? (x.price / x.surface_sqm) : 9999999;
+        filtered.sort((a, b) => getSqm(a) - getSqm(b));
+      } else if (sort === 'surface_desc') {
+        filtered.sort((a, b) => (b.surface_sqm || 0) - (a.surface_sqm || 0));
+      } else if (sort === 'price_drop') {
+        const getDrop = x => (x.previous_price && x.price && x.previous_price > x.price) ? (x.previous_price - x.price) : -1;
+        filtered.sort((a, b) => getDrop(b) - getDrop(a));
       }
 
       resultsCount.textContent = filtered.length;
-      renderListings(filtered);
+      renderListings(filtered, favSet, hiddenSet);
       renderPagination(filtered.length);
     }
 
-    function renderListings(items) {
+    const smartFilters = {
+      fav: false,
+      recent: false,
+      drop: false,
+      owner: false,
+      noBadFloor: false,
+      dedup: true,
+      hidden: false
+    };
+
+    function getFavSet() {
+      try {
+        return new Set(JSON.parse(localStorage.getItem('imob_fav_ids') || '[]'));
+      } catch (e) {
+        return new Set();
+      }
+    }
+
+    function getHiddenSet() {
+      try {
+        return new Set(JSON.parse(localStorage.getItem('imob_hidden_ids') || '[]'));
+      } catch (e) {
+        return new Set();
+      }
+    }
+
+    function updateSmartCounters(favSet, hiddenSet) {
+      const fc = document.getElementById('favCount');
+      const hc = document.getElementById('hiddenCount');
+      if (fc) fc.textContent = favSet.size;
+      if (hc) hc.textContent = hiddenSet.size;
+    }
+
+    function toggleSmartFilter(key) {
+      smartFilters[key] = !smartFilters[key];
+      if (key === 'hidden' && smartFilters.hidden) {
+        smartFilters.fav = false;
+      }
+      const btnMap = {
+        fav: 'chipFav',
+        recent: 'chipRecent',
+        drop: 'chipDrop',
+        owner: 'chipOwner',
+        noBadFloor: 'chipNoBadFloor',
+        dedup: 'chipDedup',
+        hidden: 'chipHidden'
+      };
+      Object.keys(btnMap).forEach(k => {
+        const el = document.getElementById(btnMap[k]);
+        if (el) el.classList.toggle('active', !!smartFilters[k]);
+      });
+      currentPage = 1;
+      applyFilters();
+    }
+
+    function toggleFav(id, ev) {
+      if (ev) ev.stopPropagation();
+      const set = getFavSet();
+      if (set.has(id)) {
+        set.delete(id);
+        showToast('Eliminat de la favorite.', 'info');
+      } else {
+        set.add(id);
+        showToast('⭐ Salvat la favorite!', 'success');
+      }
+      localStorage.setItem('imob_fav_ids', JSON.stringify(Array.from(set)));
+      applyFilters();
+    }
+
+    function toggleHide(id, ev) {
+      if (ev) ev.stopPropagation();
+      const set = getHiddenSet();
+      if (set.has(id)) {
+        set.delete(id);
+        showToast('Anunț restaurat în listă.', 'info');
+      } else {
+        set.add(id);
+        showToast('Anunț ascuns (îl poți vedea în filtrul Ascunse).', 'info');
+      }
+      localStorage.setItem('imob_hidden_ids', JSON.stringify(Array.from(set)));
+      applyFilters();
+    }
+
+    function renderListings(items, favSet, hiddenSet) {
       const start = (currentPage - 1) * PAGE_SIZE;
       const paginated = items.slice(start, start + PAGE_SIZE);
 
@@ -497,6 +628,13 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
           ? `${Math.round(item.price).toLocaleString("ro-RO")} ${item.currency}` 
           : "Preț la cerere";
 
+        let priceDropHtml = "";
+        if (item.previous_price && item.price && item.previous_price > item.price) {
+          const diff = Math.round(item.previous_price - item.price).toLocaleString("ro-RO");
+          const oldFmt = Math.round(item.previous_price).toLocaleString("ro-RO");
+          priceDropHtml = `<span class="price-drop-pill" title="Preț anterior: ${oldFmt} ${item.currency}">↓ -${diff} €</span><span class="price-old">${oldFmt} €</span>`;
+        }
+
         const sqmPrice = (item.price && item.surface_sqm && item.surface_sqm > 0)
           ? `${Math.round(item.price / item.surface_sqm).toLocaleString("ro-RO")} €/mp`
           : "";
@@ -511,16 +649,44 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
           ? `<span class="attr-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg> ${item.surface_sqm} mp</span>` 
           : "";
 
+        const floorBadge = item.floor
+          ? `<span class="attr-tag floor-tag">${escapeHtml(item.floor)}</span>`
+          : "";
+
+        const ownerBadge = item.owner
+          ? `<span class="attr-tag owner-tag">Proprietar / 0%</span>`
+          : "";
+
+        let crossPortalHtml = "";
+        if (item.alt && item.alt.length > 0) {
+          const links = item.alt.map(a => {
+            const pr = a.price ? ` (${Math.round(a.price).toLocaleString("ro-RO")} €)` : "";
+            return `<a href="${a.url}" target="_blank" class="cross-portal-link">${a.portal.toUpperCase()}${pr}</a>`;
+          }).join("");
+          crossPortalHtml = `<div class="cross-portal-bar"><span>🔗 Și pe:</span>${links}</div>`;
+        }
+
+        const isFav = favSet.has(item.id);
+        const isHidden = hiddenSet.has(item.id);
+
         return `
           <div class="listing-card">
             <div class="card-media">
-              <img src="${imgUrl}" alt="${escapeHtml(item.title)}" class="card-img" onerror="this.src='${fallbackImg}'">
+              <img src="${imgUrl}" alt="${escapeHtml(item.title)}" class="card-img" loading="lazy" onerror="this.src='${fallbackImg}'">
               <span class="portal-badge ${portalClass}">${item.portal}</span>
               ${yearBadge}
+              <div class="card-actions-overlay">
+                <button class="btn-card-action ${isFav ? 'fav-active' : ''}" onclick="toggleFav('${item.id}', event)" title="${isFav ? 'Elimină de la favorite' : 'Salvează la favorite'}">
+                  ${isFav ? '★' : '☆'}
+                </button>
+                <button class="btn-card-action ${isHidden ? 'hide-active' : ''}" onclick="toggleHide('${item.id}', event)" title="${isHidden ? 'Restaurează anunțul' : 'Ascunde anunțul'}">
+                  ✕
+                </button>
+              </div>
             </div>
             <div class="card-content">
               <div class="card-price-row">
-                <div class="price-main">${priceFormatted}</div>
+                <div class="price-main">${priceFormatted}${priceDropHtml}</div>
                 ${sqmPrice ? `<div class="price-sqm">${sqmPrice}</div>` : ''}
               </div>
               <a href="${item.url}" target="_blank" class="card-title" title="${escapeHtml(item.title)}">
@@ -529,8 +695,11 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
               <div class="card-attributes">
                 <span class="attr-tag">2 Camere</span>
                 ${surfBadge}
+                ${floorBadge}
                 <span class="attr-tag">${item.neighborhood || "Sector 6"}</span>
+                ${ownerBadge}
               </div>
+              ${crossPortalHtml}
               <div class="card-footer">
                 <span class="card-location">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -591,6 +760,19 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
       filterSort.value = 'newest';
       selectedPortal = 'all';
       selectedMaxPrice = null;
+      smartFilters.fav = false;
+      smartFilters.recent = false;
+      smartFilters.drop = false;
+      smartFilters.owner = false;
+      smartFilters.noBadFloor = false;
+      smartFilters.dedup = true;
+      smartFilters.hidden = false;
+      ['chipFav', 'chipRecent', 'chipDrop', 'chipOwner', 'chipNoBadFloor', 'chipHidden'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+      const dedupEl = document.getElementById('chipDedup');
+      if (dedupEl) dedupEl.classList.add('active');
       document.querySelectorAll('#portalPills .chip-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-portal') === 'all'));
       document.querySelectorAll('#pricePills .chip-btn').forEach(b => b.classList.remove('active'));
       currentPage = 1;
@@ -604,16 +786,105 @@ STATIC_TEMPLATE = """<!DOCTYPE html>
 </html>
 """
 
+
+def _extract_floor_key(floor_str: str) -> str:
+    if not floor_str:
+        return ""
+    fl = floor_str.lower()
+    if "parter" in fl:
+        return "0"
+    m = re.search(r"(\d{1,2})", fl)
+    return m.group(1) if m else ""
+
+
+def _build_compact_listings_with_dedup(listings) -> list:
+    items = []
+    for it in listings:
+        raw_desc = it.description or ""
+        clean_desc = re.sub(r"<[^>]+>", " ", raw_desc)
+        clean_desc = re.sub(r"\s+", " ", clean_desc).strip()[:220]
+
+        bad_fl = 1 if is_ground_or_top_floor(it.floor, it.title, raw_desc) else 0
+        owner = 1 if is_direct_owner_or_zero_commission(it.title, raw_desc) else 0
+
+        items.append({
+            "id": it.id,
+            "portal": it.portal,
+            "title": it.title,
+            "price": it.price,
+            "initial_price": it.initial_price,
+            "previous_price": it.previous_price,
+            "currency": it.currency,
+            "surface_sqm": it.surface_sqm,
+            "year": it.year,
+            "floor": it.floor,
+            "neighborhood": it.neighborhood,
+            "url": it.url,
+            "thumbnail": it.thumbnail,
+            "date_discovered": it.date_discovered.isoformat() if it.date_discovered else None,
+            "desc_snippet": clean_desc,
+            "bad_fl": bad_fl,
+            "owner": owner,
+            "dup": 0,
+            "alt": [],
+        })
+
+    # Group cross-portal duplicates:
+    # 1) Exact normalized title (>= 22 chars) + price within 3%
+    # 2) Same specific neighborhood + surface within 0.5 sqm + same floor number + price within 2%
+    groups = {}
+    for idx, item in enumerate(items):
+        norm_title = re.sub(r"[^a-z0-9]+", "", (item["title"] or "").lower())
+        pr = item["price"] or 0
+        nb = (item["neighborhood"] or "").lower()
+        surf = round(item["surface_sqm"] or 0)
+        fl_key = _extract_floor_key(item["floor"] or "")
+
+        key = None
+        if len(norm_title) >= 24 and pr > 0:
+            key = ("title", norm_title[:42], int(pr // 2000))
+        elif nb and nb != "sector 6" and surf >= 32 and fl_key and pr > 0:
+            key = ("struct", nb, surf, fl_key, int(pr // 1500))
+
+        if key:
+            groups.setdefault(key, []).append(idx)
+
+    for indices in groups.values():
+        if len(indices) <= 1:
+            continue
+        # Sort group so lowest price (and then newest/first) is primary
+        sorted_idx = sorted(indices, key=lambda i: (items[i]["price"] or 9999999, i))
+        primary_i = sorted_idx[0]
+        seen_portals = {items[primary_i]["portal"]}
+        alt_links = []
+
+        for sec_i in sorted_idx[1:]:
+            items[sec_i]["dup"] = 1
+            p_name = items[sec_i]["portal"]
+            if p_name not in seen_portals and len(alt_links) < 4:
+                seen_portals.add(p_name)
+                alt_links.append({
+                    "portal": p_name,
+                    "url": items[sec_i]["url"],
+                    "price": items[sec_i]["price"],
+                })
+
+        if alt_links:
+            items[primary_i]["alt"] = alt_links
+
+    return items
+
+
 def generate_static_dashboard(output_path: Path = None) -> Path:
     if output_path is None:
         docs_dir = BASE_DIR / "docs"
         docs_dir.mkdir(exist_ok=True)
         output_path = docs_dir / "index.html"
 
-    total, listings = database.get_all_listings(limit=2000)
+    total, listings = database.get_all_listings(limit=2500)
     stats = database.get_stats()
     
-    listings_data = [it.model_dump() for it in listings]
+    listings_data = _build_compact_listings_with_dedup(listings)
     now_str = datetime.now().strftime("%d.%m.%Y, %H:%M")
 
     css_file = BASE_DIR / "web" / "static" / "css" / "style.css"
